@@ -23,6 +23,7 @@
 */
 
 #include <Arduino.h>
+#include <LittleFS.h>
 #include "AsyncTelegram.h"
 
 AsyncTelegram myBot;
@@ -31,7 +32,7 @@ const char* pass = "XXXXXXXXX";     // REPLACE myPassword YOUR WIFI PASSWORD, IF
 const char* token = "XXXXXXXXX:XXXXXXXXXXXXXXXXXXXXXXX";   // REPLACE myToken WITH YOUR TELEGRAM BOT TOKEN
 
 // You only need to format FFat the first time you run a test
-#define FORMAT_FS false
+#define FORMAT_FS true
 
 
 //Example url == "http://192.168.2.81/telegram.png"
@@ -172,13 +173,13 @@ void loop() {
       if (msg.text.equalsIgnoreCase("/photofs1")) {
         Serial.println("\nSending Photo from filesystem");          
         String myFile = "telegram-bot1.jpg";          
-        myBot.sendPhotoByFile(msg.sender.id, myFile);                    
+        myBot.sendPhotoByFile(msg.sender.id, myFile, LittleFS);                    
       }
 
       else if (msg.text.equalsIgnoreCase("/photofs2")) {
         Serial.println("\nSending Photo from filesystem");          
         String myFile = "telegram-bot2.jpg";          
-        myBot.sendPhotoByFile(msg.sender.id, myFile);                    
+        myBot.sendPhotoByFile(msg.sender.id, myFile, LittleFS);                    
       }
 
       else if (msg.text.indexOf("/photohost>") > -1 ) {          
@@ -188,7 +189,7 @@ void loop() {
         listDir("/");    
         Serial.println("\nSending Photo from LAN: "); 
         Serial.println(url);          
-        myBot.sendPhotoByFile(msg.sender.id, fileName);
+        myBot.sendPhotoByFile(msg.sender.id, fileName, LittleFS);
         LittleFS.remove("/" + fileName);
         listDir("/");          
       }
