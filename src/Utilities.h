@@ -21,7 +21,8 @@ bool unicodeToUTF8(String unicode, String &utf8);
 //   a string with the converted message in UTF8 
 String toUTF8(String message);
 
-
+// Get the new Telegram API server fingerprint from https://www.grc.com/fingerprints.htm
+bool getFingerPrint(uint8_t * oldFingerprint);
 
 
 #endif
