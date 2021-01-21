@@ -2,9 +2,12 @@
 #define ASYNCTELEGRAM
 
 #define DEBUG_ENABLE  true              // enable debugmode -> print debug data on the Serial
-#define USE_UNSECURE        1           // use unsecure connection with Telegram server
-#define USE_FINGERPRINT     0           // use Telegram fingerprint server validation
+
+// use Telegram fingerprint server validation or SSL digital certificate ca.cert format if 0
+#define USE_FINGERPRINT     0           
+
 #define SERVER_TIMEOUT      5000
+#define MIN_UPDATE_TIME     2000
 
 #define TELEGRAM_HOST  "api.telegram.org"
 #define TELEGRAM_IP    "149.154.167.220" 
@@ -22,6 +25,7 @@
 #include "DataStructures.h"
 #include "InlineKeyboard.h"
 #include "ReplyKeyboard.h"
+#include "ca_cert.h"
 
 #if defined(ESP32)     
     #include <WiFiClientSecure.h>
@@ -74,7 +78,8 @@ public:
     //    pollingTime: interval time in milliseconds
     inline void setUpdateTime(uint32_t pollingTime)
     { 
-        m_minUpdateTime = pollingTime;
+        if(pollingTime > MIN_UPDATE_TIME)
+            m_minUpdateTime = pollingTime;
     }
 
 
@@ -96,11 +101,8 @@ public:
     //    true if no error occurred
     bool begin(void);
 
-    
     // reset the connection with telegram server (ex. when connection was lost)
-    // returns
-    //    true if no error occurred
-    bool reset(void);
+    void reset(void);
 
     // get the first unread message from the queue (text and query from inline keyboard). 
     // This is a destructive operation: once read, the message will be marked as read
@@ -179,28 +181,25 @@ public:
     
 
 private:
-    String          m_userName ;
-    fs::FS*         m_filesystem ;
+    
     const char*     m_token;
     const char*     m_botName;
-    int32_t         m_lastUpdate = 0;
-    uint32_t        m_lastUpdateTime;
-    uint32_t        m_minUpdateTime = 2000;
-
-    bool            m_UTF8Encoding = false;   
+    int32_t         m_lastUpdateId = 0;
+    String          m_userName ;
     uint8_t         m_fingerprint[20];
     TBUser          m_user; 
-    InlineKeyboard  m_inlineKeyboard;   // last inline keyboard showed in bot
-
-    // Struct for store telegram server reply and infos about it
-    TBServerReply   httpData;
+    InlineKeyboard  m_inlineKeyboard;   // last inline keyboard showed in bot    
+    TBServerReply   httpData;           // Struct for store telegram server reply and infos about it
+    uint32_t        m_minUpdateTime;    // Timer for avoiding query Server too much
+    fs::FS*         m_filesystem ;   
 
 #if defined(ESP32) 
     WiFiClientSecure telegramClient;
     TaskHandle_t taskHandler;
 #elif defined(ESP8266) 
-    BearSSL::Session m_session;
     BearSSL::WiFiClientSecure telegramClient;   
+    BearSSL::Session m_session;       
+    
 #endif  
 
     // send commands to the telegram server. For info about commands, check the telegram api https://core.telegram.org/bots/api

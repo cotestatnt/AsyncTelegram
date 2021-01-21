@@ -1,74 +1,54 @@
-
-
 #include "AsyncTelegram.h"
 
-
 #if DEBUG_ENABLE
-#define debugJson(X, Y) { log_debug(); serializeJsonPretty(X, Y); Serial.println();}
-#define errorJson(X, Y) { log_error(); serializeJsonPretty(X, Y); Serial.println();}
+#define debugJson(X, Y)  { log_debug(); Serial.println(); serializeJsonPretty(X, Y); Serial.println();}
+#define errorJson(E)  { log_error(); Serial.println(); Serial.println(E);}
 #else
 #define debugJson(X, Y) 
-#define errorJson(X, Y)
+#define errorJson(E)
 #endif
 
-
 // get fingerprints from https://www.grc.com/fingerprints.htm
-uint8_t fingerprint[20] = { 0xF2, 0xAD, 0x29, 0x9C, 0x34, 0x48, 0xDD, 0x8D, 0xF4, 0xCF, 0x52, 0x32, 0xF6, 0x57, 0x33, 0x68, 0x2E, 0x81, 0xC1, 0x90 };
-
-static const char digicert[] PROGMEM = R"EOF(
------BEGIN CERTIFICATE-----
-MIIEADCCAuigAwIBAgIBADANBgkqhkiG9w0BAQUFADBjMQswCQYDVQQGEwJVUzEh
-MB8GA1UEChMYVGhlIEdvIERhZGR5IEdyb3VwLCBJbmMuMTEwLwYDVQQLEyhHbyBE
-YWRkeSBDbGFzcyAyIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MB4XDTA0MDYyOTE3
-MDYyMFoXDTM0MDYyOTE3MDYyMFowYzELMAkGA1UEBhMCVVMxITAfBgNVBAoTGFRo
-ZSBHbyBEYWRkeSBHcm91cCwgSW5jLjExMC8GA1UECxMoR28gRGFkZHkgQ2xhc3Mg
-MiBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTCCASAwDQYJKoZIhvcNAQEBBQADggEN
-ADCCAQgCggEBAN6d1+pXGEmhW+vXX0iG6r7d/+TvZxz0ZWizV3GgXne77ZtJ6XCA
-PVYYYwhv2vLM0D9/AlQiVBDYsoHUwHU9S3/Hd8M+eKsaA7Ugay9qK7HFiH7Eux6w
-wdhFJ2+qN1j3hybX2C32qRe3H3I2TqYXP2WYktsqbl2i/ojgC95/5Y0V4evLOtXi
-EqITLdiOr18SPaAIBQi2XKVlOARFmR6jYGB0xUGlcmIbYsUfb18aQr4CUWWoriMY
-avx4A6lNf4DD+qta/KFApMoZFv6yyO9ecw3ud72a9nmYvLEHZ6IVDd2gWMZEewo+
-YihfukEHU1jPEX44dMX4/7VpkI+EdOqXG68CAQOjgcAwgb0wHQYDVR0OBBYEFNLE
-sNKR1EwRcbNhyz2h/t2oatTjMIGNBgNVHSMEgYUwgYKAFNLEsNKR1EwRcbNhyz2h
-/t2oatTjoWekZTBjMQswCQYDVQQGEwJVUzEhMB8GA1UEChMYVGhlIEdvIERhZGR5
-IEdyb3VwLCBJbmMuMTEwLwYDVQQLEyhHbyBEYWRkeSBDbGFzcyAyIENlcnRpZmlj
-YXRpb24gQXV0aG9yaXR5ggEAMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEFBQAD
-ggEBADJL87LKPpH8EsahB4yOd6AzBhRckB4Y9wimPQoZ+YeAEW5p5JYXMP80kWNy
-OO7MHAGjHZQopDH2esRU1/blMVgDoszOYtuURXO1v0XJJLXVggKtI3lpjbi2Tc7P
-TMozI+gciKqdi0FuFskg5YmezTvacPd+mSYgFFQlq25zheabIZ0KbIIOqPjCDPoQ
-HmyW74cNxA9hi63ugyuV+I6ShHI56yDqg+2DzZduCLzrTia2cyvk0/ZM/iZx4mER
-dEr/VxqHD3VILs9RaRegAhJhldXRQLIQTO7ErBBDpqWeCtWVYpoNz4iCxTIM5Cuf
-ReYNnyicsbkqWletNw+vHX/bvZ8=
------END CERTIFICATE-----
-)EOF";
+uint8_t defaulFingerprint[20] = { 0xF2, 0xAD, 0x29, 0x9C, 0x34, 0x48, 0xDD, 0x8D, 0xF4, 0xCF, 0x52, 0x32, 0xF6, 0x57, 0x33, 0x68, 0x2E, 0x81, 0xC1, 0x90 };
 
 AsyncTelegram::AsyncTelegram() {
+
     httpData.payload.reserve(512);
     httpData.param.reserve(512);
     httpData.command.reserve(32);
-    
+    m_minUpdateTime = MIN_UPDATE_TIME;
+
 #if USE_FINGERPRINT
-    setFingerprint(fingerprint);   // set the default fingerprint   
+    setFingerprint(defaulFingerprint);   // set the default fingerprint   
     telegramClient.setFingerprint(m_fingerprint);  
-#endif
-	
-#if defined(ESP8266)    
-	#if USE_UNSECURE
-		telegramClient.setInsecure();     
-	#else	
-		telegramClient.setCACert_P(digicert, sizeof(digicert));
-		telegramClient.setSession(&m_session);
-		telegramClient.setBufferSizes(TCP_MSS, 2*TCP_MSS);
-	#endif
-#elif defined(ESP32) 
-	telegramClient.setCACert(digicert);
+    telegramClient.setBufferSizes(TCP_MSS, TCP_MSS);
+#else     
+    #if defined(ESP8266)
+        // Set up time to allow for certificate validation
+        configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+        telegramClient.setSession(&m_session);
+        telegramClient.setBufferSizes(TCP_MSS, TCP_MSS);
+    #elif defined(ESP32) 
+	    telegramClient.setCACert(digicert);
+    #endif
 #endif 
 
 }
 
 
 bool AsyncTelegram::begin(){
-
+    
+#if defined(ESP8266) && USE_FINGERPRINT == 0  
+    // Waiting for NTP time sync:
+    log_debug("\nWaiting for NTP time sync: ");
+    time_t now = time(nullptr);
+    while (now < 8 * 3600 * 2) {        
+        now = time(nullptr);
+        delay(100);
+    }
+#endif
+    telegramClient.connect(TELEGRAM_HOST, TELEGRAM_PORT);   
+    bool isMe = getMe(m_user);
 #if defined(ESP32)
     //Start Task with input parameter set to "this" class
     xTaskCreatePinnedToCore(
@@ -76,26 +56,29 @@ bool AsyncTelegram::begin(){
         "httpTask",             //Name of the task
         8192,                   //Stack size in words
         this,                   //Task input parameter
-        10,                     //Priority of the task
+        1,                      //Priority of the task
         &taskHandler,           //Task handle.
         0                       //Core where the task should run
     );    
 #endif   
-    telegramClient.connect(TELEGRAM_HOST, TELEGRAM_PORT);   
-    return getMe(m_user);
+    return isMe;  
 }
 
 
-bool AsyncTelegram::reset(void){     
+void AsyncTelegram::reset(void){     
+    log_debug("\nReset connection");
     telegramClient.stop();   
-    telegramClient.flush();
+    telegramClient.flush();   
+    httpData.busy = false; 
     
 #if defined(ESP32)
     httpData.command.clear();
+    if(taskHandler == nullptr)
+        xTaskCreatePinnedToCore(this->postCommandTask, "httpTask", 8192, this, 1, &taskHandler, 0);  
 #endif
 
     httpData.timestamp = millis();
-    return checkConnection();
+    checkConnection();
 }
 
 
@@ -103,8 +86,9 @@ bool AsyncTelegram::reset(void){
 void AsyncTelegram::sendCommand(const char* const&  command, const char* const& param)
 {
 #if defined(ESP32)  
-    if(httpData.waitingReply == false && telegramClient.connected() ){
-        httpData.waitingReply = true;
+    // Check if http task is busy before set new command
+    checkConnection();
+    if( !httpData.busy && telegramClient.connected() ){
         httpData.command = command;
         httpData.param = param;
     }
@@ -114,24 +98,26 @@ void AsyncTelegram::sendCommand(const char* const&  command, const char* const& 
 }
 
 
-// Blocking https POST to server
+
 String AsyncTelegram::postCommand(const char* const& command, const char* const& param, bool blocking)
 {   
-    //bool connected = checkConnection();
-    if(telegramClient.connected()){      
-        telegramClient.print("POST https://" TELEGRAM_HOST "/bot");
-        telegramClient.print(m_token);
-        telegramClient.print("/");
-        telegramClient.print(command);
-        telegramClient.print(" HTTP/1.1" "\nHost: api.telegram.org" "\nConnection: keep-alive" "\nContent-Type: application/json");
-        telegramClient.print("\nContent-Length: ");
-        telegramClient.print(strlen(param));
-        telegramClient.print("\n\n");
-        telegramClient.print(param);
-       
-        httpData.payload.clear();
-        httpData.waitingReply = true;
-        // Blocking mode
+    bool connected = checkConnection();
+    if(connected){      
+        String request((char *)0);
+        request.reserve(512);
+        request = "POST https://" TELEGRAM_HOST "/bot";
+        request += m_token;
+        request += "/";
+        request += command;
+        request += " HTTP/1.1" "\nHost: api.telegram.org" "\nConnection: keep-alive" "\nContent-Type: application/json";
+        request += "\nContent-Length: ";
+        request += String(strlen(param));
+        request += "\n\n";
+        request += param;
+        telegramClient.print(request);
+        httpData.busy = true;
+
+         // Blocking mode
         if (blocking) {        
             while (telegramClient.connected()) {
                 String line = telegramClient.readStringUntil('\n');
@@ -141,7 +127,7 @@ String AsyncTelegram::postCommand(const char* const& command, const char* const&
             while (telegramClient.available()) {
                 httpData.payload  += (char) telegramClient.read();
             }
-            httpData.waitingReply = false;
+            httpData.busy = false;
             return httpData.payload ;        
         }
     }
@@ -152,15 +138,15 @@ String AsyncTelegram::postCommand(const char* const& command, const char* const&
 // Https POST command runned in a separate task/separate core (ESP32 only)
 #if defined(ESP32) 
 void AsyncTelegram::postCommandTask(void *args){
-   
-    log_debug("Start http request task on core %d\n", xPortGetCoreID());
+    log_debug("\nStarted http request task on core %d\n", xPortGetCoreID());
     AsyncTelegram *_this = (AsyncTelegram *) args;  
-
-    for(;;) {         
+    vTaskDelay(MIN_UPDATE_TIME);     
+    for(;;) {  
+        vTaskDelay(50);      
         // send a command to telegram server
-        if (_this->httpData.command.length() && _this->telegramClient.connected() ) {    
+        if (_this->httpData.command.length() && _this->telegramClient.connected()) {    
             uint32_t t1 = millis();
-
+            _this->httpData.busy = true;
             _this->telegramClient.print("POST https://" TELEGRAM_HOST "/bot");
             _this->telegramClient.print(_this->m_token);
             _this->telegramClient.print("/");
@@ -172,9 +158,7 @@ void AsyncTelegram::postCommandTask(void *args){
             _this->telegramClient.print(_this->httpData.param);
 
             _this->httpData.command.clear();
-            _this->httpData.param.clear();              
-            _this->httpData.payload.clear();
-            _this->httpData.waitingReply = true;
+            _this->httpData.param.clear();   
 
             // Skip headers
             while (_this->telegramClient.connected()) {
@@ -189,76 +173,78 @@ void AsyncTelegram::postCommandTask(void *args){
                 }
             }
             // Save the payload data
+            _this->httpData.payload.clear();
             while (_this->telegramClient.available()) {
                 yield();
                 _this->httpData.payload  += (char) _this->telegramClient.read();
             }
-            _this->httpData.waitingReply = false;     
 
             UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );                                        
-            log_debug("Time: %lu, Heap: %u, Stack: %u\n", millis() - t1, heap_caps_get_free_size(0), uxHighWaterMark);  
+            log_debug("Time: %lu, Heap: %u, MaxFree: %u, Task stack: %u\n", millis() - t1, 
+                    heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0), uxHighWaterMark);  
+
+            // Something wrong, maybe memory leak?
+            if (uxHighWaterMark < 6000 || _this->httpData.timestamp == 0) {
+                log_error("\nError: Memory leak in http object - restart task");    
+                break;                                         
+            }
+            
+            _this->httpData.busy = false;
         }  
-        vTaskDelay(100);
     }
-    vTaskDelete(NULL);             // delete task from memory    
+    vTaskDelete(NULL);       
 }
 #endif
 
 
 
 bool AsyncTelegram::getUpdates(){   
-
-    // Send message to Telegram server only if enough time has passed since last
-    if(millis() - m_lastUpdateTime > m_minUpdateTime){
-        m_lastUpdateTime = millis();
-
-        // If previuos reply from server was received, we are free to send another one
-        if( httpData.waitingReply == false) {   
-            String param((char *)0);
-            param.reserve(64);
-            DynamicJsonDocument root(BUFFER_SMALL);
-            root["limit"] = 1;
-            // polling timeout: add &timeout=<seconds. zero for short polling.
-            root["timeout"] = 3;
-            root["allowed_updates"] = "message,callback_query";     
-            if (m_lastUpdate != 0) {
-                root["offset"] = m_lastUpdate;
-            }           
-            serializeJson(root, param);            
-            sendCommand("getUpdates", param.c_str());   
-        }
-    }
-
-    // No response from Telegram server for a long time 
+     // No response from Telegram server for a long time 
     if(millis() - httpData.timestamp > 10*m_minUpdateTime) {
         Serial.println("Reset connection");
         reset();
     }
 
-// No task manager for esp8266 :(
-#if defined(ESP8266)    
-    // If there are incoming bytes available from the server, read and save
-    httpData.payload.clear();
+    // Send message to Telegram server only if enough time has passed since last
+    static uint32_t lastUpdateTime;
+    if(millis() - lastUpdateTime > m_minUpdateTime){
+        lastUpdateTime = millis();
 
-    // Skip headers
-    while (telegramClient.connected()) {
-        String line = telegramClient.readStringUntil('\n');
-        // End of headers
-        if (line == "\r") break;
-        // Server has closed the connection from remote, force restart connection.
-        if (line.indexOf("Connection: close") > -1) {
-            log_debug("Connection closed from server side\n");   
-            httpData.timestamp = 0; // force restart connection from next getUpdates()
+        // If previuos reply from server was received, we are free to send another one
+        if( ! httpData.busy) {   
+            String param;
+            DynamicJsonDocument root(BUFFER_SMALL);
+            root["limit"] = 1;
+            // polling timeout: add &timeout=<seconds. zero for short polling.
+            root["timeout"] = 3;
+            root["allowed_updates"] = "message,callback_query";     
+            if (m_lastUpdateId != 0) {
+                root["offset"] = m_lastUpdateId;
+            }           
+            serializeJson(root, param);             
+            sendCommand("getUpdates", param.c_str());    
         }
     }
-    // Get payload 
-    while (telegramClient.available()) {
-        httpData.payload  += (char) telegramClient.read();
-    }
-    httpData.waitingReply = false;     
-#endif
 
-    return ! httpData.waitingReply;
+// No task manager for esp8266 :(
+#if defined(ESP8266)    
+    if(httpData.busy ) {
+
+        // If there are incoming bytes available from the server, read them and store:
+        httpData.payload.clear();
+        while (telegramClient.available() ){
+            httpData.payload += (char) telegramClient.read();       
+        }
+
+        // We have a message, parse data received
+        if(httpData.payload.length()) {        
+            httpData.payload = httpData.payload.substring(httpData.payload.indexOf("{\"ok\":"), httpData.payload.length());     
+            httpData.busy = false;
+        }              
+    }
+#endif
+   
+    return !httpData.busy;
 }
 
 
@@ -271,26 +257,31 @@ MessageType AsyncTelegram::getNewMessage(TBMessage &message )
     // Check incoming messages from server (if enough time has elapsed since last)
     getUpdates() ;
     
-    if( ! httpData.waitingReply && httpData.payload.length() ) {       
+    if( httpData.payload.length() && !httpData.busy) {       
         // We have a message, parse data received
         DynamicJsonDocument root(BUFFER_BIG);
         deserializeJson(root, httpData.payload);
-        httpData.payload.clear();
-        httpData.timestamp = millis();
-        httpData.waitingReply = false;
-
+        
         bool ok = root["ok"];
         if (!ok) {
-            errorJson(root, Serial);
+            errorJson(httpData.payload);
             return MessageNoData;
         }
-        
         debugJson(root, Serial);    
+        httpData.payload.clear();
+        httpData.command.clear();
+        httpData.timestamp = millis();
+
         uint32_t updateID = root["result"][0]["update_id"];
         if (updateID == 0){
             return MessageNoData;
         }
-        m_lastUpdate = updateID + 1;
+
+        if(updateID == m_lastUpdateId -1) {
+            // Message already parsed
+            return MessageNoData;
+        }
+        m_lastUpdateId = updateID + 1;
         
         if(root["result"][0]["callback_query"]["id"]){
             // this is a callback query
@@ -356,26 +347,26 @@ MessageType AsyncTelegram::getNewMessage(TBMessage &message )
 
 bool AsyncTelegram::getFile(TBDocument &doc)
 {
-    String response((char *)0);
-    response.reserve(100);
-
     // getFile has to be blocking (wait server reply)
-    String cmd = "getFile?file_id=" + String(doc.file_id);
+    String cmd = "getFile?file_id=" ;
+    cmd += doc.file_id;
+    String response;
     response = postCommand(cmd.c_str(), "", true);
-    if (response.length() == 0)
+    if (response.length() )
         return false;
 
     DynamicJsonDocument root(BUFFER_SMALL);
     deserializeJson(root, response);
-    httpData.payload.clear();
-
+    
     bool ok = root["ok"];
     if (!ok) {
-        errorJson(root, Serial);
-        return false;
+        errorJson(httpData.payload);
+        return MessageNoData;
     }
+    debugJson(root, Serial);    
+    httpData.payload.clear();
+    httpData.timestamp = millis();
 
-    debugJson(root, Serial);
     doc.file_path  = "https://api.telegram.org/file/bot";
     doc.file_path += m_token;
     doc.file_path += "/";
@@ -385,26 +376,26 @@ bool AsyncTelegram::getFile(TBDocument &doc)
 }
 
 
+
 // Blocking getMe function (we wait for a reply from Telegram server)
 bool AsyncTelegram::getMe(TBUser &user) {
-    String response((char *)0);
-    response.reserve(100);
-    
+
     // getMe has top be blocking (wait server reply)
-    response = postCommand("getMe", "", true); 
+    String response = postCommand("getMe", "", true); 
     if (response.length() == 0)
         return false;
 
     DynamicJsonDocument root(BUFFER_SMALL);
     deserializeJson(root, response);
-    httpData.payload.clear();
 
     bool ok = root["ok"];
     if (!ok) {
-        errorJson(root, Serial);
-        return false;
+        errorJson(httpData.payload);
+        return MessageNoData;
     }
-    debugJson(root, Serial);
+    debugJson(root, Serial);    
+    httpData.payload.clear();
+    httpData.timestamp = millis();
 
     user.id           = root["result"]["id"];
     user.isBot        = root["result"]["is_bot"];
@@ -422,8 +413,7 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Strin
 {
     if (sizeof(message) == 0)
         return;
-    String param((char *)0);
-    param.reserve(512);
+    
     DynamicJsonDocument root(BUFFER_BIG);   
 
     root["chat_id"] = msg.sender.id;
@@ -432,12 +422,13 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Strin
         root["parse_mode"] = "Markdown";
     
     if (keyboard.length() != 0) {
-        DynamicJsonDocument doc(512);
+        DynamicJsonDocument doc(BUFFER_MEDIUM);
         deserializeJson(doc, keyboard);
         JsonObject myKeyb = doc.as<JsonObject>();
         root["reply_markup"] = myKeyb;
     }
     
+    String param;
     serializeJson(root, param);
     sendCommand("sendMessage", param.c_str());
     debugJson(root, Serial);
@@ -453,12 +444,12 @@ void AsyncTelegram::sendToUser(const int32_t userid, String &message, String key
 void AsyncTelegram::sendPhotoByUrl(const uint32_t& chat_id,  const String& url, const String& caption){ 
     if (sizeof(url) == 0)
         return;
-    String param((char *)0);
-    param.reserve(512);
-    DynamicJsonDocument root(BUFFER_BIG);   
+    DynamicJsonDocument root(BUFFER_MEDIUM);   
     root["chat_id"] = chat_id;
     root["photo"] = url;
     root["caption"] = caption;  
+
+    String param;
     serializeJson(root, param);
     sendCommand("sendPhoto", param.c_str());
     debugJson(root, Serial);
@@ -467,15 +458,15 @@ void AsyncTelegram::sendPhotoByUrl(const uint32_t& chat_id,  const String& url, 
 void AsyncTelegram::sendToChannel(const char* &channel, String &message, bool silent) {
     if (sizeof(message) == 0)
         return;
-    String param((char *)0);
-    param.reserve(512);
-    DynamicJsonDocument root(BUFFER_BIG);   
+    
+    DynamicJsonDocument root(BUFFER_MEDIUM);   
 
     root["chat_id"] = channel;
     root["text"] = message;
     if(silent)
         root["silent"] = true;
     
+    String param;
     serializeJson(root, param);
     sendCommand("sendMessage", param.c_str());
     debugJson(root, Serial);
@@ -484,6 +475,7 @@ void AsyncTelegram::sendToChannel(const char* &channel, String &message, bool si
 void AsyncTelegram::endQuery(const TBMessage &msg, const char* message, bool alertMode) {
     if (sizeof(msg.callbackQueryID) == 0)
         return;
+
     DynamicJsonDocument root(BUFFER_SMALL);
     root["callback_query_id"] =  msg.callbackQueryID;
     if (sizeof(message) != 0) {
@@ -500,11 +492,13 @@ void AsyncTelegram::endQuery(const TBMessage &msg, const char* message, bool ale
 
 void AsyncTelegram::removeReplyKeyboard(const TBMessage &msg, const char* message, bool selective) {
     DynamicJsonDocument root(BUFFER_SMALL);
-    String command;
+    
     root["remove_keyboard"] = true;
     if (selective) {
         root["selective"] = true;
     }
+
+    String command;
     serializeJson(root, command);
     sendMessage(msg, message, command);
 }
@@ -514,7 +508,7 @@ bool AsyncTelegram::serverReply(const char* const& replyMsg) {
     deserializeJson(root, replyMsg);
     bool ok = root["ok"];
     if (!ok) {
-        errorJson(root, Serial);
+        errorJson(replyMsg);
         return false;
     }
     debugJson(root, Serial);
@@ -524,21 +518,25 @@ bool AsyncTelegram::serverReply(const char* const& replyMsg) {
 bool AsyncTelegram::checkConnection(){
     // Start connection with Telegramn server if necessary)
     if(! telegramClient.connected()){
-          // try to connect
+        // try to connect
         if (!telegramClient.connect(TELEGRAM_HOST, TELEGRAM_PORT)) {
             // no way, try to connect with fixed IP
+            #if defined(ESP8266)
+            BearSSL::X509List cert(digicert);
+            telegramClient.setTrustAnchors(&cert);
+            #endif
             IPAddress telegramServerIP;
             telegramServerIP.fromString(TELEGRAM_IP);
             if (!telegramClient.connect(telegramServerIP, TELEGRAM_PORT)) {
-                Serial.printf("Unable to connect to Telegram server\n");                  
+                Serial.printf("\n\nUnable to connect to Telegram server\n");                  
             }
             else {
-                Serial.printf("Connected using Telegram fixed IP\n");                
+                log_debug("\nConnected using Telegram ip address\n");                
                 telegramClient.setTimeout(SERVER_TIMEOUT);
             }
         }
         else {
-            Serial.printf("Connected using Telegram hostname\n"); 
+            log_debug("\nConnected using Telegram hostname\n"); 
             telegramClient.setTimeout(SERVER_TIMEOUT);
         }   
     }
@@ -552,12 +550,18 @@ bool AsyncTelegram::sendPhotoByFile(const uint32_t& chat_id, const String& fileN
     m_filesystem = &filesystem;
 #if defined(ESP8266)
     return sendMultipartFormData("sendPhoto", chat_id, fileName, "image/jpeg", "photo" );
-#endif
-    m_fileInfo.chat_id =  chat_id;
-    m_fileInfo.fileName = fileName;
-    m_fileInfo.fileType = "photo";
-    xTaskCreatePinnedToCore(this->sendMultipartFormDataTask, "sendFileTask", 8192, this, 1, NULL, 0);    
+#else
+
+    if(!httpData.busy) {
+        // Suspend main task
+        vTaskSuspend(taskHandler);
+        m_fileInfo.chat_id =  chat_id;
+        m_fileInfo.fileName = fileName;
+        m_fileInfo.fileType = "photo";
+        xTaskCreatePinnedToCore(this->sendMultipartFormDataTask, "sendFileTask", 8192, this, 10, NULL, 0);    
+    }
     return true;
+#endif
 }
 
 bool AsyncTelegram::sendPhotoByFile(const TBMessage &msg, const String& fileName, fs::FS& filesystem) {    
@@ -565,25 +569,24 @@ bool AsyncTelegram::sendPhotoByFile(const TBMessage &msg, const String& fileName
 }
 
 
+#if defined(ESP32)
 void AsyncTelegram::sendMultipartFormDataTask(void *args)
 {
     log_debug();
-    AsyncTelegram* _this = (AsyncTelegram*) args;  
-
-    uint32_t chat_id = _this->m_fileInfo.chat_id;
-    const char* fileName = _this->m_fileInfo.fileName.c_str();
-    const char* fileType =  _this->m_fileInfo.fileType.c_str();
-    const char* contentType =  _this->m_fileInfo.contentType.c_str();
+    AsyncTelegram* _this =      (AsyncTelegram*) args;  
+    uint32_t chat_id     =      _this->m_fileInfo.chat_id;
+    const char* fileName =      _this->m_fileInfo.fileName.c_str();
+    const char* fileType =      _this->m_fileInfo.fileType.c_str();
+    const char* contentType =   _this->m_fileInfo.contentType.c_str();
 
     _this->sendMultipartFormData("sendPhoto", chat_id, fileName, contentType, fileType ); 
-    vTaskDelay(200);
     vTaskDelete( NULL );
 }
+#endif
 
 bool AsyncTelegram::sendMultipartFormData( const String& command,  const uint32_t& chat_id, const String& fileName, 
                                            const char* contentType, const char* binaryPropertyName)
 {
-
     #define BOUNDARY            "----WebKitFormBoundary7MA4YWxkTrZu0gW"
     #define END_BOUNDARY        "\r\n--" BOUNDARY "--\r\n"
 
@@ -594,12 +597,9 @@ bool AsyncTelegram::sendMultipartFormData( const String& command,  const uint32_
     }
 
     if (telegramClient.connected()) {
-
-#if defined(ESP32)
-        vTaskSuspend(taskHandler);
-#endif         
-        httpData.waitingReply = false;
+        httpData.busy = true;      
         String formData;
+        formData.reserve(300);
         formData += "--" BOUNDARY;    
         formData += "\r\nContent-disposition: form-data; name=\"chat_id\"\r\n\r\n";
         formData += String(chat_id);
@@ -621,7 +621,7 @@ bool AsyncTelegram::sendMultipartFormData( const String& command,  const uint32_
         // Headers
         telegramClient.println("Host: " TELEGRAM_HOST);    
         telegramClient.print("Content-Length: ");
-        int contentLength = myFile.size() + formData.length() + String(END_BOUNDARY).length();
+        int contentLength = myFile.size() + formData.length() + strlen(END_BOUNDARY);
         telegramClient.println(String(contentLength));
         telegramClient.print("Content-Type: multipart/form-data; boundary=");
         telegramClient.println(BOUNDARY);
@@ -630,6 +630,8 @@ bool AsyncTelegram::sendMultipartFormData( const String& command,  const uint32_
         telegramClient.print(formData);
 
         uint8_t buff[BLOCK_SIZE];
+        //telegramClient.write(myFile);
+
         while (myFile.available()) {    
 #if defined(ESP32)
             vTaskDelay(1);
@@ -644,21 +646,22 @@ bool AsyncTelegram::sendMultipartFormData( const String& command,  const uint32_
                 int b_size = myFile.available() ;
                 myFile.read(buff, b_size);
                 telegramClient.write(buff, b_size); 
-            }     
-        }
-       
+            }   
+        }       
         telegramClient.print(END_BOUNDARY);
         myFile.close();
+        httpData.busy = false;
+        
+        #if defined(ESP32)
+        // Resume main task
+        vTaskResume(taskHandler);
+        #endif
+
     }
     else {
         Serial.println("\nError: client not connected");
         return false;
     }
-    
-#if defined(ESP32)
-    vTaskResume(taskHandler);
-#endif 
-    httpData.waitingReply = false;
     return true;
 }
 

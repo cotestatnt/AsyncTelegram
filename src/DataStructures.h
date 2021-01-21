@@ -6,6 +6,7 @@
 #include <FS.h>
 
 #define BUFFER_BIG       	2048 		// json parser buffer size (ArduinoJson v6)
+#define BUFFER_MEDIUM      	1024 		// json parser buffer size (ArduinoJson v6)
 #define BUFFER_SMALL      	512 		// json parser buffer size (ArduinoJson v6)
 
 enum MessageType {
@@ -79,7 +80,7 @@ struct TBFileInfo {
 
 // Here we store the stuff related to the Telegram server reply
 struct TBServerReply{
-    bool        waitingReply = false;
+	bool		busy;
     uint32_t    timestamp;
     String      payload;
 

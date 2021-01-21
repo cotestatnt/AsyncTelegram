@@ -23,43 +23,7 @@ extern "C"
 #endif
 
 
-#ifndef CONFIG_LOG_COLORS
-#define CONFIG_LOG_COLORS 0
-#endif
-
-#if CONFIG_LOG_COLORS
-#define LOG_COLOR_BLACK   "30"
-#define LOG_COLOR_RED     "31" //ERROR
-#define LOG_COLOR_GREEN   "32" //INFO
-#define LOG_COLOR_YELLOW  "33" //WARNING
-#define LOG_COLOR_BLUE    "34"
-#define LOG_COLOR_MAGENTA "35"
-#define LOG_COLOR_CYAN    "36" //DEBUG
-#define LOG_COLOR_GRAY    "37" //VERBOSE
-#define LOG_COLOR_WHITE   "38"
-
-#define LOG_COLOR(COLOR)  "\033[0;" COLOR "m"
-#define LOG_BOLD(COLOR)   "\033[1;" COLOR "m"
-#define LOG_RESET_COLOR   "\033[0m"
-
-#define LOG_COLOR_E       LOG_COLOR(LOG_COLOR_RED)
-#define LOG_COLOR_W       LOG_COLOR(LOG_COLOR_YELLOW)
-#define LOG_COLOR_I       LOG_COLOR(LOG_COLOR_GREEN)
-#define LOG_COLOR_D       LOG_COLOR(LOG_COLOR_CYAN)
-#define LOG_COLOR_V       LOG_COLOR(LOG_COLOR_GRAY)
-#else
-#define LOG_COLOR_E
-#define LOG_COLOR_W
-#define LOG_COLOR_I
-#define LOG_COLOR_D
-#define LOG_COLOR_V
-#define LOG_RESET_COLOR
-#endif
-
-const char * pathToFileName(const char * path);
-//int log_printf(const char *fmt, ...);
-
-#define _LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter "[" #letter "][%s:%u] %s():\t" format LOG_RESET_COLOR, pathToFileName(__FILE__), __LINE__, __FUNCTION__
+#define _LOG_FORMAT(letter, format)  "[" #letter "][%s:%u] %s():\t" format, __FILE__, __LINE__, __FUNCTION__
 
 
 #if DEBUG_ENABLE
