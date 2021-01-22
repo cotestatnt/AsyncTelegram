@@ -146,9 +146,6 @@ void handleUpdate(TBMessage msg, String file_path) {
   t_httpUpdate_return ret = ESPhttpUpdate.update(client, file_path);
   Serial.println("Update done!");
   client.stop();
-  
-  delay(1000);
-  Serial.println("Delay done!");
 
   switch (ret)
   {
