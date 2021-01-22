@@ -272,7 +272,7 @@ MessageType AsyncTelegram::getNewMessage(TBMessage &message )
         httpData.command.clear();
         httpData.timestamp = millis();
 
-        uint32_t updateID = root["result"][0]["update_id"];
+        int32_t updateID = root["result"][0]["update_id"];
         if (updateID == 0){
             return MessageNoData;
         }
@@ -309,8 +309,13 @@ MessageType AsyncTelegram::getNewMessage(TBMessage &message )
             message.group.id         = root["result"][0]["message"]["chat"]["id"];
             message.group.title      = root["result"][0]["message"]["chat"]["title"];
             message.date             = root["result"][0]["message"]["date"];
-                    
-            if(root["result"][0]["message"]["location"]){
+
+            if(root["result"][0]["message"]["reply_to_message"]){
+                // this is a reply to message
+                message.text        = root["result"][0]["message"]["text"].as<String>();        
+                message.messageType = MessageReply;   
+            }                      
+            else if(root["result"][0]["message"]["location"]){
                 // this is a location message
                 message.location.longitude = root["result"][0]["message"]["location"]["longitude"];
                 message.location.latitude = root["result"][0]["message"]["location"]["latitude"];
@@ -330,6 +335,7 @@ MessageType AsyncTelegram::getNewMessage(TBMessage &message )
                 message.document.file_id      = root["result"][0]["message"]["document"]["file_id"];
                 message.document.file_name    = root["result"][0]["message"]["document"]["file_name"];
                 message.text                  = root["result"][0]["message"]["caption"].as<String>();
+                Serial.println("Call getFile()");
                 message.document.file_exists  = getFile(message.document);
                 message.messageType           = MessageDocument;
             }
@@ -347,12 +353,13 @@ MessageType AsyncTelegram::getNewMessage(TBMessage &message )
 
 bool AsyncTelegram::getFile(TBDocument &doc)
 {
-    // getFile has to be blocking (wait server reply)
-    String cmd = "getFile?file_id=" ;
-    cmd += doc.file_id;
     String response;
+    response.reserve(100);
+
+    // getFile has to be blocking (wait server reply)
+    String cmd = "getFile?file_id=" + String(doc.file_id);
     response = postCommand(cmd.c_str(), "", true);
-    if (response.length() )
+    if (response.length() == 0)
         return false;
 
     DynamicJsonDocument root(BUFFER_SMALL);
@@ -378,8 +385,8 @@ bool AsyncTelegram::getFile(TBDocument &doc)
 
 
 // Blocking getMe function (we wait for a reply from Telegram server)
-bool AsyncTelegram::getMe(TBUser &user) {
-
+bool AsyncTelegram::getMe(TBUser &user) 
+{
     // getMe has top be blocking (wait server reply)
     String response = postCommand("getMe", "", true); 
     if (response.length() == 0)
@@ -403,13 +410,13 @@ bool AsyncTelegram::getMe(TBUser &user) {
     user.username     = root["result"]["username"];
     user.lastName     = root["result"]["last_name"];
     user.languageCode = root["result"]["language_code"];
-    m_userName        = user.username ;
+    userName          = user.username ;
     return true;
 }
 
 
 
-void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, String keyboard)
+void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, String keyboard, bool forceReply)
 {
     if (sizeof(message) == 0)
         return;
@@ -421,11 +428,15 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Strin
     if (msg.isMarkdownEnabled)
         root["parse_mode"] = "Markdown";
     
-    if (keyboard.length() != 0) {
+    if (keyboard.length() != 0 || forceReply) {
         DynamicJsonDocument doc(BUFFER_MEDIUM);
         deserializeJson(doc, keyboard);
         JsonObject myKeyb = doc.as<JsonObject>();
         root["reply_markup"] = myKeyb;
+        if(forceReply) {
+            root["reply_markup"]["selective"] = true,
+            root["reply_markup"]["force_reply"] = true;
+        }
     }
     
     String param;
@@ -518,13 +529,13 @@ bool AsyncTelegram::serverReply(const char* const& replyMsg) {
 bool AsyncTelegram::checkConnection(){
     // Start connection with Telegramn server if necessary)
     if(! telegramClient.connected()){
+        #if defined(ESP8266)
+        BearSSL::X509List cert(digicert);
+        telegramClient.setTrustAnchors(&cert);
+        #endif
         // try to connect
         if (!telegramClient.connect(TELEGRAM_HOST, TELEGRAM_PORT)) {
             // no way, try to connect with fixed IP
-            #if defined(ESP8266)
-            BearSSL::X509List cert(digicert);
-            telegramClient.setTrustAnchors(&cert);
-            #endif
             IPAddress telegramServerIP;
             telegramServerIP.fromString(TELEGRAM_IP);
             if (!telegramClient.connect(telegramServerIP, TELEGRAM_PORT)) {

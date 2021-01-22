@@ -122,7 +122,7 @@ public:
     //   keyboard: the inline/reply keyboard (optional)
     //             (in json format or using the inlineKeyboard/ReplyKeyboard class helper)
     
-    void sendMessage(const TBMessage &msg, const char* message, String keyboard = "");
+    void sendMessage(const TBMessage &msg, const char* message, String keyboard = "", bool forceReply = false);
 
     // sendMessage function overloads
     inline void sendMessage(const TBMessage &msg, String &message, String keyboard = "") 
@@ -176,16 +176,16 @@ public:
     // Return the Telegram username
     inline const char* getTelegramUser() 
     {
-        return m_userName.c_str();
+        return userName;
     }
-    
+    const char*     userName ;
 
 private:
     
     const char*     m_token;
     const char*     m_botName;
     int32_t         m_lastUpdateId = 0;
-    String          m_userName ;
+    
     uint8_t         m_fingerprint[20];
     TBUser          m_user; 
     InlineKeyboard  m_inlineKeyboard;   // last inline keyboard showed in bot    

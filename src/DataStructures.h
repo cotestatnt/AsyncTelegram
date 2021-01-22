@@ -15,7 +15,8 @@ enum MessageType {
 	MessageQuery    = 2,
 	MessageLocation = 3,
 	MessageContact  = 4,
-	MessageDocument = 5
+	MessageDocument = 5,
+	MessageReply = 6
 };
 
 struct TBUser {
