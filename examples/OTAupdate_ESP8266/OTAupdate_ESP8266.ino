@@ -70,7 +70,7 @@ void loop() {
     switch (msg.messageType) {
       case MessageDocument :
         if (msg.document.file_exists) {
-          if (msg.text.equalsIgnoreCase("fw")) {
+          if (msg.text.equalsIgnoreCase("fw") || msg.text.equalsIgnoreCase("fs")) {
             // Caption is 'fw' and file exist
             String report = "Update started...\nFile name: " 
                            + String(msg.document.file_name)
@@ -79,7 +79,11 @@ void loop() {
             myBot.sendMessage(msg, report.c_str());
 
             // Install firmware update
-            t_httpUpdate_return ret = ESPhttpUpdate.update(client, msg.document.file_path);
+            t_httpUpdate_return ret;
+            if(msg.text.equalsIgnoreCase("fw"))
+                ret = ESPhttpUpdate.update(client, msg.document.file_path);
+            else
+                ret = ESPhttpUpdate.updateFS(client, msg.document.file_path);
             switch (ret)
             {
               case HTTP_UPDATE_FAILED:
