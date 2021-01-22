@@ -141,9 +141,6 @@ void handleUpdate(TBMessage msg, String file_path) {
   Serial.println("Update done!");
   client.stop();
   
-  delay(1000);
-  Serial.println("Delay done!");
-
   switch (ret)
   {
     case HTTP_UPDATE_FAILED:
