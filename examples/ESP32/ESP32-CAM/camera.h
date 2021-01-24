@@ -100,7 +100,7 @@
 #error "Camera model not selected"
 #endif
 
-void cameraSetup(framesize_t frameSize){
+void cameraSetup(framesize_t frameSize, int jpeg_quality, int frame_b ){
   pinMode(FLASH_LED, OUTPUT);
   // configure LED PWM functionalitites (ledChannel, freq, resolution);
   ledcSetup(15, 5000, 8);
@@ -128,15 +128,21 @@ void cameraSetup(framesize_t frameSize){
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  config.fb_count = 1;
+  
+  /*
   //init with high specs to pre-allocate larger buffers
-  if(psramFound() && frameSize == FRAMESIZE_UXGA){
+  if(psramFound() && frameSize >= FRAMESIZE_UXGA){
+    config.fb_count = 1;
     config.frame_size = FRAMESIZE_UXGA;
-    config.jpeg_quality = 10;  
-  } else {
+    config.jpeg_quality = 5;    
+  } else {  
+
+  */
+
+    config.fb_count = frame_b;
     config.frame_size = frameSize;
-    config.jpeg_quality = 15;
-  }
+    config.jpeg_quality = jpeg_quality;
+  //}
 
 #if defined(CAMERA_MODEL_ESP_EYE)
   pinMode(13, INPUT_PULLUP);
