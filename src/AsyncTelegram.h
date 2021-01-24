@@ -146,7 +146,20 @@ public:
     // Send message to a specific user. In order to work properly two conditions is needed:
     //  - You have to find the userid (for example using the bot @JsonBumpBot  https://t.me/JsonDumpBot)
     //  - User has to start your bot in it's own client. For example send a message with @<your bot name>
-    void sendToUser(const int32_t userid, String &message, String keyboard = "") ;
+    void sendToUser(const int32_t userid, const char *message, String keyboard = "");
+
+    inline void sendToUser(const int32_t userid, String &message, String keyboard = "") {
+        return sendToUser(userid, message.c_str(), keyboard);
+    }
+
+    inline void sendToUser(const int32_t userid, const char* message, InlineKeyboard &keyboard) 
+    {
+        return sendToUser(userid, message, keyboard.getJSON());
+    }
+
+    inline void sendToUser(const int32_t userid, const char* message, ReplyKeyboard &keyboard) {
+        return sendToUser(userid, message, keyboard.getJSON());
+    }
 
     // terminate a query started by pressing an inlineKeyboard button. The steps are:
     // 1) send a message with an inline keyboard
