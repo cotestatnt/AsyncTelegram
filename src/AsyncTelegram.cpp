@@ -449,7 +449,7 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Strin
 void AsyncTelegram::sendToUser(const int32_t userid, const char* message, String keyboard) {
     TBMessage msg;
     msg.sender.id = userid;
-    return sendMessage(msg, message, "");
+    return sendMessage(msg, message, keyboard);
 }
 
 void AsyncTelegram::sendPhotoByUrl(const uint32_t& chat_id,  const String& url, const String& caption){ 
