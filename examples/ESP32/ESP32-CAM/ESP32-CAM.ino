@@ -1,5 +1,5 @@
 /*
- Name:          echoBot.ino
+ Name:        esp32-cam.ino
  Created:     20/06/2020
  Author:      Tolentino Cotesta <cotestatnt@yahoo.com>
  Description: an example that show how is possible send an image captured from a ESP32-CAM board
@@ -17,37 +17,24 @@
 //#define CAMERA_MODEL_M5STACK_WIDE
 #define CAMERA_MODEL_AI_THINKER
 #include "camera.h"
-
-#include "soc/soc.h"           // Brownout error fix
 #include "soc/rtc_cntl_reg.h"  // Brownout error fix
+#include <SD_MMC.h>            // Use onboard SD Card reader
 
-// Define where store images (on board SD card reader or internal flash memory)
-#define USE_MMC true
-#ifdef USE_MMC
-    #include <SD_MMC.h>           // Use onboard SD Card reader
-    fs::FS &filesystem = SD_MMC; 
-#else
-    #include <FFat.h>              // Use internal flash memory
-    fs::FS &filesystem = FFat;     // Is necessary select the proper partition scheme (ex. "Default 4MB with ffta..")
-#endif
-
-// You only need to format FFat when error on mount (don't work with MMC SD card)
-#define FORMAT_FS_IF_FAILED true
 #define FILENAME_SIZE 20
-#define KEEP_IMAGE true
+#define DELETE_ONUPLOAD true
 
 #include <WiFi.h>
+
+#define DEBUG_ENABLE true
 #include <AsyncTelegram.h>
 AsyncTelegram myBot;
 
-const char* ssid = "XXXXXXXX";             // REPLACE mySSID WITH YOUR WIFI SSID
-const char* pass = "XXXXXXXX";          // REPLACE myPassword YOUR WIFI PASSWORD, IF ANY
-const char* token = "XXXXXXXXXXXXXXXXXXXX";     // REPLACE myToken WITH YOUR TELEGRAM BOT TOKEN
-
+const char* ssid  =  "XXXXXXXXX";     // SSID WiFi network
+const char* pass  =  "XXXXXXXXX";     // Password  WiFi network    
+const char* token =  "XXXXXXXXX:XXXXXXXXXXXXXXXXXXXXXXX";   	// REPLACE myToken WITH YOUR TELEGRAM BOT TOKEN
 
 // Struct for saving time datas (needed for time-naming the image files)
 struct tm timeinfo;
-
 
 // List all files saved in the selected filesystem
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -66,12 +53,12 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     File file = root.openNextFile();
     while(file){
         if(file.isDirectory()){
-            Serial.printf("  DIR : %s", file.name());
+            Serial.printf("  DIR : %s\n", file.name());
             if(levels)
                 listDir(fs, file.name(), levels -1);      
         } 
         else 
-            Serial.printf("  FILE: %s\tSIZE: %d", file.name(), file.size());
+            Serial.printf("  FILE: %s\tSIZE: %d\n", file.name(), file.size());
        
         file = root.openNextFile();
     }
@@ -89,7 +76,7 @@ String takePicture(fs::FS &fs){
     String path = "/";
     path += String(pictureName);
     
-    File file = fs.open(path.c_str(), FILE_WRITE);
+    File file = fs.open(path.c_str(), "w");
     if(!file){
         Serial.println("Failed to open file in writing mode");
         return "";
@@ -103,13 +90,8 @@ String takePicture(fs::FS &fs){
         return "";
     }    
     ledcWrite(15, 0);     // Flash led OFF
-
-    // Save picture to memory
-#ifdef USE_MMC
     uint64_t freeBytes =  SD_MMC.totalBytes() - SD_MMC.usedBytes();
-#else
-    uint64_t freeBytes =  filesystem.freeBytes();
-#endif
+
 
     if(freeBytes> file.size() ){ 
         file.write(fb->buf, fb->len); // payload (image), payload length
@@ -125,12 +107,13 @@ String takePicture(fs::FS &fs){
 
 
 void setup() {
+    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector    
     Serial.begin(115200);
     Serial.setDebugOutput(true);
     Serial.println();
 
     // Init the camera 
-    cameraSetup(FRAMESIZE_UXGA);
+    cameraSetup(FRAMESIZE_UXGA, 4, 2);
 
     // Init WiFi connections
     WiFi.begin(ssid, pass);
@@ -142,40 +125,39 @@ void setup() {
     Serial.print(WiFi.localIP());
 
     // Init filesystem
-#ifdef USE_MMC
     if(!SD_MMC.begin())
         Serial.println("SD Card Mount Failed");
     if(SD_MMC.cardType() == CARD_NONE)
         Serial.println("No SD Card attached");
     Serial.printf("\nTotal space: %10llu\n", SD_MMC.totalBytes());
     Serial.printf("Free space: %10llu\n", SD_MMC.totalBytes() - SD_MMC.usedBytes());
-#else
-    // Init filesystem (format if necessary)
-    if(!filesystem.begin(FORMAT_FS_IF_FAILED))
-        Serial.println("\nFS Mount Failed.\nFilesystem will be formatted, please wait.");       
-    Serial.printf("\nTotal space: %10lu\n", filesystem.totalBytes());
-    Serial.printf("Free space: %10lu\n", filesystem.freeBytes());
-#endif
 
-    listDir(filesystem, "/", 0);
+    listDir(SD_MMC, "/", 0);
     
-    // Set the Telegram bot properies
-    myBot.setUpdateTime(1000);
-    myBot.setTelegramToken(token);
-    
-    // Check if all things are ok
-    Serial.print("\nTest Telegram connection... ");
-    myBot.begin() ? Serial.println("OK") : Serial.println("NOK");
-
     // Init and get the system time
     configTime(3600, 3600, "pool.ntp.org");
     getLocalTime(&timeinfo);
     Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+
+    // Set the Telegram bot properies
+    myBot.setUpdateTime(2000);
+    myBot.setTelegramToken(token);
+
+    // Check if all things are ok
+    Serial.print("\nTest Telegram connection... ");
+    myBot.begin() ? Serial.println("OK") : Serial.println("NOK");
   
+    String welcome = "BOT ready. Welcome from @" + myBot.userName;
+    uint32_t chat_id = 436865110;   // You can find your chat id with /getChatId to this bot
+    myBot.sendToUser(chat_id, welcome);
+
+    // Due to the task running on other core, wait some time in order to be shure
+    // last command was not overwritten from getNewMessage() in main loop
+    delay(2000);         
 }
 
-void loop() {
 
+void loop() {
     // A variable to store telegram message data
     TBMessage msg;
     
@@ -187,18 +169,17 @@ void loop() {
             
         if (msgType == MessageText){
             // Received a text message
-            if (msg.text.equalsIgnoreCase("/takePhoto")) {
+            if (msg.text.equalsIgnoreCase("/getChatId")) {
+                String chat_id = String(msg.sender.id);
+                myBot.sendMessage(msg, chat_id);                
+            } 
+            else if (msg.text.equalsIgnoreCase("/takePhoto")) {
                 Serial.println("\nSending Photo from CAM");          
 
                 // Take picture and save to file
-                String myFile = takePicture(filesystem);
+                String myFile = takePicture(SD_MMC);
                 if(myFile != "") {
-                    myBot.sendPhotoByFile(msg.sender.id, myFile, filesystem);  
-                           
-                    //If you don't need to keep image in memory, delete it 
-                    if(KEEP_IMAGE == false){
-                        filesystem.remove("/" + myFile);
-                    }
+                    myBot.sendPhotoByFile(msg.sender.id, myFile, SD_MMC, DELETE_ONUPLOAD);  
                 }
             } 
             else {
@@ -206,7 +187,8 @@ void loop() {
                 Serial.println(msg.text);
                 String replyStr = "Message received:\n";
                 replyStr += msg.text;
-                replyStr +=  "\nTry with /takePhoto";
+                replyStr += "\n/getChatId will send you the ID of this chat";
+                replyStr += "\n/takePhoto will send you back a picture\n";
                 myBot.sendMessage(msg, replyStr);
             }
             
