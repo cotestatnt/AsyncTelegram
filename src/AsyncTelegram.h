@@ -1,7 +1,13 @@
+
+
+// enable debugmode -> print debug data on the Serial
+#define DEBUG_ENABLE true
+#ifndef DEBUG_ENABLE
+    #define DEBUG_ENABLE          false
+#endif
+
 #ifndef ASYNCTELEGRAM
 #define ASYNCTELEGRAM
-
-#define DEBUG_ENABLE  true              // enable debugmode -> print debug data on the Serial
 
 // use Telegram fingerprint server validation or SSL digital certificate ca.cert format if 0
 #define USE_FINGERPRINT     0           
@@ -15,6 +21,8 @@
 
 #include <Arduino.h>
 #include <FS.h>
+#include <SD_MMC.h>  
+
 // for using int_64 data
 #define ARDUINOJSON_USE_LONG_LONG   1 
 #define ARDUINOJSON_DECODE_UNICODE  1
@@ -85,8 +93,11 @@ public:
 
     void sendPhotoByUrl(const uint32_t& chat_id,  const String& url, const String& caption);
     
-    bool sendPhotoByFile(const uint32_t& chat_id,  const String& fileName, fs::FS& filesystem);
-    bool sendPhotoByFile(const TBMessage &msg,  const String& fileName, fs::FS& filesystem);
+    bool sendPhotoByFile(const uint32_t& chat_id,  const String& fileName, fs::FS& filesystem, bool del = false);
+
+    inline bool sendPhotoByFile(const TBMessage &msg, const String& fileName, fs::FS& filesystem, bool del) {    
+        return sendPhotoByFile(msg.sender.id, fileName, filesystem );
+    }
 
     // Get file link and size by unique document ID
     // params
@@ -174,14 +185,13 @@ public:
     bool getUpdates();
 
     // Return the Telegram username
-    inline const char* getTelegramUser() 
+    inline String getTelegramUser() 
     {
         return userName;
     }
-    const char*     userName ;
+    String     userName ;
 
 private:
-    
     const char*     m_token;
     const char*     m_botName;
     int32_t         m_lastUpdateId = 0;

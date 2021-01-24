@@ -71,12 +71,12 @@ struct TBMessage {
 };
 
 
-
 struct TBFileInfo {
 	int32_t chat_id;
 	String fileName;
 	String fileType;
 	String contentType;
+	bool delOnUpload = false;
 };
 
 // Here we store the stuff related to the Telegram server reply
