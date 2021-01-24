@@ -113,7 +113,7 @@ void setup() {
     Serial.println();
 
     // Init the camera 
-    cameraSetup(FRAMESIZE_UXGA, 8, 1);
+    cameraSetup(FRAMESIZE_UXGA, 8, 2);
 
     // Init WiFi connections
     WiFi.begin(ssid, pass);
