@@ -542,6 +542,7 @@ bool AsyncTelegram::serverReply(const char* const& replyMsg) {
     return true;
 }
 
+
 bool AsyncTelegram::checkConnection(){
     // Start connection with Telegramn server if necessary)
     if(! telegramClient.connected()){
@@ -549,30 +550,31 @@ bool AsyncTelegram::checkConnection(){
         BearSSL::X509List cert(digicert);
         telegramClient.setTrustAnchors(&cert);
         #elif defined(ESP32) 
+        telegramClient.stop();
         telegramClient.clearWriteError();
         telegramClient.setCACert(digicert);
         #endif
         // try to connect
-        if (!telegramClient.connect(TELEGRAM_HOST, TELEGRAM_PORT)) {
-            // no way, try to connect with fixed IP
-            IPAddress telegramServerIP;
-            telegramServerIP.fromString(TELEGRAM_IP);
-            if (!telegramClient.connect(telegramServerIP, TELEGRAM_PORT)) {
+        IPAddress telegramServerIP;
+        telegramServerIP.fromString(TELEGRAM_IP);
+        if (!telegramClient.connect(telegramServerIP, TELEGRAM_PORT)) {
+            // no way, try to connect with hostname            
+            if (!telegramClient.connect(TELEGRAM_HOST, TELEGRAM_PORT)) {
                 Serial.printf("\n\nUnable to connect to Telegram server\n");                  
             }
             else {
-                log_debug("\nConnected using Telegram ip address\n");                
-                telegramClient.setTimeout(SERVER_TIMEOUT);
+                log_debug("\nConnected using Telegram hostname\n");            
+                httpData.timestamp = millis();
             }
         }
         else {
-            log_debug("\nConnected using Telegram hostname\n"); 
-            telegramClient.setTimeout(SERVER_TIMEOUT);
+            log_debug("\nConnected using Telegram ip address\n"); 
+            httpData.timestamp = millis();
         }   
     }
+    
     return telegramClient.connected();
 }
-
 
 
 bool AsyncTelegram::sendPhotoByFile(const uint32_t& chat_id, const String& fileName, fs::FS& filesystem, bool del) {
