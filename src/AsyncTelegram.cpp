@@ -549,10 +549,8 @@ bool AsyncTelegram::checkConnection(){
         #if defined(ESP8266)
         BearSSL::X509List cert(digicert);
         telegramClient.setTrustAnchors(&cert);
-        #elif defined(ESP32) 
-        telegramClient.stop();
-        telegramClient.clearWriteError();
-        telegramClient.setCACert(digicert);
+        #elif defined(ESP32)      	
+        //telegramClient.setCACert(digicert);
         #endif
         // try to connect
         IPAddress telegramServerIP;
