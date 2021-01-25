@@ -43,7 +43,7 @@ bool AsyncTelegram::begin(){
     // Waiting for NTP time sync:
     log_debug("\nWaiting for NTP time sync: ");
     time_t now = time(nullptr);
-    while (now < 8 * 3600 * 2) {        
+    while (now < 3600 ) {        
         now = time(nullptr);
         delay(100);
     }
@@ -212,7 +212,7 @@ void AsyncTelegram::postCommandTask(void *args){
 
 bool AsyncTelegram::getUpdates(){   
      // No response from Telegram server for a long time 
-    if(millis() - httpData.timestamp > 5*m_minUpdateTime) {
+    if(millis() - httpData.timestamp > 10*m_minUpdateTime) {
         Serial.println("Reset connection");
         reset();
     }
@@ -462,10 +462,10 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Strin
 }
 
 
-void AsyncTelegram::sendToUser(const int32_t userid, const char* message, String keyboard) {
+void AsyncTelegram::sendToUser(const int32_t userid, String &message, String keyboard) {
     TBMessage msg;
     msg.sender.id = userid;
-    return sendMessage(msg, message, keyboard);
+    return sendMessage(msg, message.c_str(), "");
 }
 
 void AsyncTelegram::sendPhotoByUrl(const uint32_t& chat_id,  const String& url, const String& caption){ 
@@ -542,14 +542,13 @@ bool AsyncTelegram::serverReply(const char* const& replyMsg) {
     return true;
 }
 
-
 bool AsyncTelegram::checkConnection(){
     // Start connection with Telegramn server if necessary)
     if(! telegramClient.connected()){
         #if defined(ESP8266)
         BearSSL::X509List cert(digicert);
         telegramClient.setTrustAnchors(&cert);
-        #elif defined(ESP32)      	
+        #elif defined(ESP32) 
         //telegramClient.setCACert(digicert);
         #endif
         // try to connect
@@ -573,6 +572,7 @@ bool AsyncTelegram::checkConnection(){
     
     return telegramClient.connected();
 }
+
 
 
 bool AsyncTelegram::sendPhotoByFile(const uint32_t& chat_id, const String& fileName, fs::FS& filesystem, bool del) {
@@ -670,6 +670,7 @@ bool AsyncTelegram::sendMultipartFormData( const String& command,  const uint32_
                 myFile.read(buff, BLOCK_SIZE );                            
                 telegramClient.write(buff, BLOCK_SIZE);
                 Serial.print(".");
+                httpData.timestamp = millis();
             }
             else {
                 int b_size = myFile.available() ;
@@ -700,4 +701,3 @@ bool AsyncTelegram::sendMultipartFormData( const String& command,  const uint32_
     }
     return true;
 }
-
