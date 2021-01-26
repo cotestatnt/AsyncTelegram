@@ -165,7 +165,7 @@ public:
         strcpy_P(buffer, (PGM_P)ifsh);
         AsyncTelegram::sendMessage(msg, buffer, "");
         free(buffer);
-        return;
+        return 0;
     };
 
     // Send message to a channel. The bot must be in the admin group
