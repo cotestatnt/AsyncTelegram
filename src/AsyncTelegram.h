@@ -150,6 +150,23 @@ public:
     inline void sendMessage(const TBMessage &msg, const char* message, ReplyKeyboard &keyboard) {
         return sendMessage(msg, message, keyboard.getJSON());
     }
+    
+    uint8_t sendMessage(const TBMessage &msg, const __FlashStringHelper *ifsh)
+    {
+        if (!ifsh) return 1; // return if the pointer is void
+
+        int length = strlen_P((PGM_P)ifsh); // cast it to PGM_P, which is basically const char *, and measure it using the _P version of strlen.
+        if (length == 0) return 2;
+        
+        char * buffer = (char*)malloc(sizeof(char) * length);
+
+        if(!buffer) return 3;
+
+        strcpy_P(buffer, (PGM_P)ifsh);
+        AsyncTelegram::sendMessage(msg, buffer, "");
+        free(buffer);
+        return;
+    };
 
     // Send message to a channel. The bot must be in the admin group
     void sendToChannel(const char*  &channel, String &message, bool silent) ;
