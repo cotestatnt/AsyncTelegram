@@ -163,7 +163,7 @@ public:
         if(!buffer) return 3;
 
         strcpy_P(buffer, (PGM_P)ifsh);
-        AsyncTelegram::sendMessage(msg, buffer, "");
+        sendMessage(msg, buffer, "");
         free(buffer);
         return 0;
     };
