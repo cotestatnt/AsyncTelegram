@@ -1,8 +1,5 @@
 #include "Utilities.h"
 
-
-
-
 String toUTF8(String message)
 {
 	String converted;
@@ -47,4 +44,25 @@ String toUTF8(String message)
 		}
 	}
 	return converted;
+}
+
+String int64ToAscii(int64_t value) {
+	String buffer = "";
+	int64_t temp;
+	uint8_t rest;
+	char ascii;
+	if (value < 0)
+		temp = -value;
+	else
+		temp = value;
+
+	while (temp != 0) {
+		rest = temp % 10;
+		temp = (temp - rest) / 10;
+		ascii = 0x30 + rest;
+		buffer = ascii + buffer;
+	}
+	if (value < 0)
+		buffer = '-' + buffer;
+	return buffer;
 }
