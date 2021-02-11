@@ -1,6 +1,7 @@
 // for using int_64 data
 #define ARDUINOJSON_USE_LONG_LONG   1 
 #define ARDUINOJSON_DECODE_UNICODE  1
+
 #include <ArduinoJson.h>
 #include "AsyncTelegram.h"
 #include "Utilities.h"
@@ -498,7 +499,7 @@ bool AsyncTelegram::getMe(TBUser &user) {
 
 
 
-void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, String keyboard)
+void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, String keyboard, bool group)
 {
     if (sizeof(message) == 0)
         return;
@@ -506,7 +507,10 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Strin
     param.reserve(512);
     DynamicJsonDocument root(BUFFER_BIG);   
 
-    root["chat_id"] = msg.sender.id;
+    if(group)
+        root["chat_id"] = msg.group.id;
+    else
+        root["chat_id"] = msg.sender.id;
     root["text"] = message;
     if (msg.isMarkdownEnabled)
         root["parse_mode"] = "Markdown";
@@ -550,6 +554,11 @@ void AsyncTelegram::sendToUser(const int32_t userid, String &message, String key
     return sendMessage(msg, message.c_str(), "");
 }
 
+void AsyncTelegram::sendToGroup(const int64_t groupid, String &message, String keyboard) {
+    TBMessage msg;
+    msg.group.id = groupid;
+    return sendMessage(msg, message.c_str(), "", true);
+}
 
 bool AsyncTelegram::sendPhotoByFile(const uint32_t& chat_id, const String& fileName, fs::FS& fs) {
     return sendMultipartFormData("sendPhoto", chat_id, fileName, "image/jpeg", "photo", fs );

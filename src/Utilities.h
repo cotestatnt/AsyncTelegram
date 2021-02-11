@@ -21,7 +21,12 @@ bool unicodeToUTF8(String unicode, String &utf8);
 //   a string with the converted message in UTF8 
 String toUTF8(String message);
 
-
+// convert an int64 value to an ASCII string
+// params
+//   value: the int64 value
+// returns
+//   the ASCII string of the converted value 
+String int64ToAscii(int64_t value);
 
 
 #endif

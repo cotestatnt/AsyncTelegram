@@ -112,7 +112,7 @@ public:
     //   keyboard: the inline/reply keyboard (optional)
     //             (in json format or using the inlineKeyboard/ReplyKeyboard class helper)
     
-    void sendMessage(const TBMessage &msg, const char* message, String keyboard = "");
+    void sendMessage(const TBMessage &msg, const char* message, String keyboard = "", bool group = false);
     void sendMessage(const TBMessage &msg, String &message, String keyboard = "");
     
     void sendMessage(const TBMessage &msg, const char* message, InlineKeyboard &keyboard);  
@@ -125,6 +125,11 @@ public:
     //  - You have to find the userid (for example using the bot @JsonBumpBot  https://t.me/JsonDumpBot)
     //  - User has to start your bot in it's own client. For example send a message with @<your bot name>
     void sendToUser(const int32_t userid, String &message, String keyboard = "") ;
+    
+    // Send message to a specific group. In order to work properly two conditions is needed:
+    //  - You have to find the groupid (for example using the bot @JsonBumpBot  https://t.me/JsonDumpBot)
+    //  - Group has to start your bot in it's own client. For example send a message with @<your bot name>
+    void sendToGroup(const int64_t groupid, String &message, String keyboard = "");
 
     // terminate a query started by pressing an inlineKeyboard button. The steps are:
     // 1) send a message with an inline keyboard

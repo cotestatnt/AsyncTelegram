@@ -129,7 +129,7 @@ void loop() {
 	// if there is an incoming message...
 	if (myBot.getNewMessage(msg)) {
 		// ...and if it is a callback query message
-	    if (msg.messageType == CTBotMessageQuery) {
+	    if (msg.messageType == MessageQuery) {
 			// received a callback query message, check if it is the "My button" callback
 			if (msg.callbackQueryData.equals(CALLBACK_QUERY_DATA)) {
 				// pushed "My button" button --> do related things...
