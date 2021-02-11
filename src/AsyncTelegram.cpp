@@ -642,6 +642,44 @@ void AsyncTelegram::removeReplyKeyboard(const TBMessage &msg, const char* messag
     sendMessage(msg, message, command);
 }
 
+void AsyncTelegram::editMessageReplyMarkup(TBMessage &msg, String keyboard) // keyboard value defaulted to ""
+{
+    if (sizeof(msg) == 0)
+    return;
+    String buffer((char *)0);
+    buffer.reserve(256);
+
+    DynamicJsonDocument root(BUFFER_SMALL);   
+
+    root["chat_id"] = msg.sender.id;
+    root["message_id"] = msg.messageID;
+    
+    if (msg.isMarkdownEnabled)
+        root["parse_mode"] = "Markdown";
+    
+    if (keyboard.length() != 0) {
+        DynamicJsonDocument doc(512);
+        deserializeJson(doc, keyboard);
+        JsonObject myKeyb = doc.as<JsonObject>();
+        root["reply_markup"] = myKeyb;
+    }
+    
+    serializeJson(root, buffer);
+    sendCommand("editMessageReplyMarkup", buffer.c_str());
+    
+    #if DEBUG_MODE > 0
+    serialLog("SEND message:\n");
+    serializeJsonPretty(root, Serial);
+    serialLog("\n");
+    #endif
+}
+
+void AsyncTelegram::editMessageReplyMarkup(TBMessage &msg, InlineKeyboard &keyboard)
+{
+    m_inlineKeyboard = keyboard;
+    return editMessageReplyMarkup(msg, keyboard.getJSON());
+}
+
 
 bool AsyncTelegram::serverReply(const char* const& replyMsg) {  
     DynamicJsonDocument root(BUFFER_SMALL);
