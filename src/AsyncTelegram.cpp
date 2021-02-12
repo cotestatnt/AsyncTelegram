@@ -337,6 +337,7 @@ MessageType AsyncTelegram::getNewMessage(TBMessage &message )
         if(root["result"][0]["callback_query"]["id"]){
             // this is a callback query
             message.callbackQueryID   = root["result"][0]["callback_query"]["id"];
+            message.chatId            = root["result"][0]["callback_query"]["message"]["chat"]["id"];
             message.sender.id         = root["result"][0]["callback_query"]["from"]["id"];
             message.sender.username   = root["result"][0]["callback_query"]["from"]["username"];
             message.sender.firstName  = root["result"][0]["callback_query"]["from"]["first_name"];
@@ -353,6 +354,7 @@ MessageType AsyncTelegram::getNewMessage(TBMessage &message )
         else if(root["result"][0]["message"]["message_id"]){
             // this is a message
             message.messageID        = root["result"][0]["message"]["message_id"];
+            message.chatId           = root["result"][0]["message"]["chat"]["id"];
             message.sender.id        = root["result"][0]["message"]["from"]["id"];
             message.sender.username  = root["result"][0]["message"]["from"]["username"];
             message.sender.firstName = root["result"][0]["message"]["from"]["first_name"];
@@ -651,7 +653,7 @@ void AsyncTelegram::editMessageReplyMarkup(TBMessage &msg, String keyboard) // k
 
     DynamicJsonDocument root(BUFFER_SMALL);   
 
-    root["chat_id"] = msg.sender.id;
+    root["chat_id"] = msg.chatId;
     root["message_id"] = msg.messageID;
     
     if (msg.isMarkdownEnabled)
