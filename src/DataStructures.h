@@ -53,6 +53,7 @@ struct TBDocument {
 
 struct TBMessage {
 	int32_t          messageID;
+	int64_t          chatId;
 	TBUser           sender;
 	TBGroup          group;
 	int32_t          date;

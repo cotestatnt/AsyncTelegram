@@ -152,6 +152,10 @@ public:
     // return:
     //   true if no error occurred
     void removeReplyKeyboard(const TBMessage &msg, const char* message, bool selective = false);
+    
+    // Use this method to edit only the reply markup of messages.
+    void editMessageReplyMarkup(TBMessage &msg, String keyboard = "");
+    void editMessageReplyMarkup(TBMessage &msg, InlineKeyboard &keyboard);
 
     // set the new Telegram API server fingerprint overwriting the default one.
     // It can be obtained by this service: https://www.grc.com/fingerprints.htm
