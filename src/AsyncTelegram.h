@@ -112,7 +112,7 @@ public:
     //   keyboard: the inline/reply keyboard (optional)
     //             (in json format or using the inlineKeyboard/ReplyKeyboard class helper)
     
-    void sendMessage(const TBMessage &msg, const char* message, String keyboard = "", bool group = false);
+    void sendMessage(const TBMessage &msg, const char* message, String keyboard = "");
     void sendMessage(const TBMessage &msg, String &message, String keyboard = "");
     
     void sendMessage(const TBMessage &msg, const char* message, InlineKeyboard &keyboard);  
