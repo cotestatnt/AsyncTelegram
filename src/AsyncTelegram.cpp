@@ -546,15 +546,9 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Reply
 }
 
 
-void AsyncTelegram::sendToUser(const int32_t userid, String &message, String keyboard) {
+void AsyncTelegram::sendTo(const int32_t userid, String &message, String keyboard) {
     TBMessage msg; 
     msg.chatId = userid;
-    return sendMessage(msg, message.c_str(), "");
-}
-
-void AsyncTelegram::sendToGroup(const int64_t groupid, String &message, String keyboard) {
-    TBMessage msg;
-    msg.chatId = groupid;
     return sendMessage(msg, message.c_str(), "");
 }
 
