@@ -547,8 +547,8 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Reply
 
 
 void AsyncTelegram::sendToUser(const int32_t userid, String &message, String keyboard) {
-    TBMessage msg;
-    msg.sender.id = userid;
+    TBMessage msg; 
+    msg.chatId = userid;
     return sendMessage(msg, message.c_str(), "");
 }
 
