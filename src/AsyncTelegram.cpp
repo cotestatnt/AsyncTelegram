@@ -554,8 +554,8 @@ void AsyncTelegram::sendToUser(const int32_t userid, String &message, String key
 
 void AsyncTelegram::sendToGroup(const int64_t groupid, String &message, String keyboard) {
     TBMessage msg;
-    msg.group.id = groupid;
-    return sendMessage(msg, message.c_str(), "", true);
+    msg.chatId = groupid;
+    return sendMessage(msg, message.c_str(), "");
 }
 
 bool AsyncTelegram::sendPhotoByFile(const uint32_t& chat_id, const String& fileName, fs::FS& fs) {
