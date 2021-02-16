@@ -359,7 +359,6 @@ MessageType AsyncTelegram::getNewMessage(TBMessage &message )
             message.sender.username  = root["result"][0]["message"]["from"]["username"];
             message.sender.firstName = root["result"][0]["message"]["from"]["first_name"];
             message.sender.lastName  = root["result"][0]["message"]["from"]["last_name"];
-            message.group.id         = root["result"][0]["message"]["chat"]["id"];
             message.group.title      = root["result"][0]["message"]["chat"]["title"];
             message.date             = root["result"][0]["message"]["date"];
                     
@@ -501,7 +500,7 @@ bool AsyncTelegram::getMe(TBUser &user) {
 
 
 
-void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, String keyboard, bool group)
+void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, String keyboard)
 {
     if (sizeof(message) == 0)
         return;
@@ -509,10 +508,7 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Strin
     param.reserve(512);
     DynamicJsonDocument root(BUFFER_BIG);   
 
-    if(group)
-        root["chat_id"] = msg.group.id;
-    else
-        root["chat_id"] = msg.sender.id;
+    root["chat_id"] = msg.chatId;
     root["text"] = message;
     if (msg.isMarkdownEnabled)
         root["parse_mode"] = "Markdown";
@@ -550,16 +546,10 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Reply
 }
 
 
-void AsyncTelegram::sendToUser(const int32_t userid, String &message, String keyboard) {
-    TBMessage msg;
-    msg.sender.id = userid;
+void AsyncTelegram::sendTo(const int32_t userid, String &message, String keyboard) {
+    TBMessage msg; 
+    msg.chatId = userid;
     return sendMessage(msg, message.c_str(), "");
-}
-
-void AsyncTelegram::sendToGroup(const int64_t groupid, String &message, String keyboard) {
-    TBMessage msg;
-    msg.group.id = groupid;
-    return sendMessage(msg, message.c_str(), "", true);
 }
 
 bool AsyncTelegram::sendPhotoByFile(const uint32_t& chat_id, const String& fileName, fs::FS& fs) {
