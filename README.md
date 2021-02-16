@@ -41,6 +41,7 @@ Take a look at the examples provided in the [examples folder](https://github.com
 ### Reference
 [Here how to use the library](https://github.com/cotestatnt/AsyncTelegram/blob/master/REFERENCE.md). 
 
++ 1.0.9   Bug fixes and merged some excellent pull requests
 + 1.0.8   Now you can update ESP firmware with a Telegram message (thanks to Vladimir!). Added example and instructions
 + 1.0.7   Added example for take picture with ESP32-CAM board
 + 1.0.6   AsyncTelegram now can send also pictures
