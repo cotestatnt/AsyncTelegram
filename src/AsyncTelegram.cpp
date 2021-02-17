@@ -494,7 +494,6 @@ bool AsyncTelegram::getMe(TBUser &user) {
     user.username     = root["result"]["username"];
     user.lastName     = root["result"]["last_name"];
     user.languageCode = root["result"]["language_code"];
-    userName = user.username ;
     return true;
 }
 
