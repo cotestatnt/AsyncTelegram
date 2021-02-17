@@ -169,8 +169,6 @@ public:
 
     bool getUpdates();
 
-    String userName ;
-
 private:
     const char*   m_token;
     const char*   m_botName;
