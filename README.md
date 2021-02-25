@@ -1,7 +1,5 @@
 # AsyncTelegram 
 
-This library is mainly inspired from https://github.com/shurillu/CTBot
-
 ___
 ### Introduction
 AsyncTelegram is an Arduino class for managing Telegram Bot on ESP8266 and ESP32 platform.
@@ -21,6 +19,7 @@ Don't you know Telegram bots and how to setup one? Check [this](https://core.tel
 
 
 ### Features
++ Remote update of firmware (ESP8266)
 + Send and receive non-blocking messages to Telegram bot
 + Send photo both from url and from local filesystem (SPIFFS, LittleFS, FFAT, SD etc etc )
 + Inline keyboards
@@ -40,6 +39,9 @@ Take a look at the examples provided in the [examples folder](https://github.com
 
 ### Reference
 [Here how to use the library](https://github.com/cotestatnt/AsyncTelegram/blob/master/REFERENCE.md). 
+
++ 2.0.0   Complete review of methods and data structures. Less memory usage. ESP32 is now completely asynchronous for upload as well
+          This release breaks compatibility with older ones. Sketchs needs to be little modified (checks the new examples)
 
 + 1.0.9   Bug fixes and merged some excellent pull requests
 + 1.0.8   Now you can update ESP firmware with a Telegram message (thanks to Vladimir!). Added example and instructions
