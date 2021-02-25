@@ -39,6 +39,7 @@ The library works with the ESP8266 and ESP32 chipset.
 Take a look at the examples provided in the [examples folder](https://github.com/cotestatnt/AsyncTelegram/tree/master/examples).
 
 ### Reference
+N.B. Reference updating is still in progress, can be inaccurated with some new features
 [Here how to use the library](https://github.com/cotestatnt/AsyncTelegram/blob/master/REFERENCE.md). 
 
 + 2.0.0   Complete review of methods and data structures. Less memory usage. ESP32 is now completely asynchronous for upload as well
