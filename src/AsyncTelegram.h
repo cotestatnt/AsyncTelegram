@@ -66,15 +66,15 @@ public:
     // It can be obtained by this service: https://www.grc.com/fingerprints.htm
     // params:
     //    newFingerprint: the array of 20 bytes that contains the new fingerprint
-    inline void setFingerprint(const uint8_t *newFingerprint)
+    inline void setFingerPrint(const uint8_t *newFingerprint)   __attribute__ ((deprecated))
     {
         for (int i = 0; i < 20; i++)
             m_fingerprint[i] = newFingerprint[i];
     }
 
-    inline void updateFingerprint()
+    inline bool updateFingerPrint() __attribute__ ((deprecated))
     {
-        getFingerPrint(m_fingerprint);
+        return getFingerPrint(m_fingerprint);
     }
 
 
@@ -89,7 +89,12 @@ public:
 
     void setClock(const char* TZ);
 
+
     void sendPhotoByUrl(const uint32_t& chat_id,  const String& url, const String& caption);
+	
+	inline void sendPhotoByUrl(const TBMessage &msg,  const String& url, const String& caption){
+		sendPhotoByUrl(msg.sender.id, url, caption);
+	}
 
     bool sendPhotoByFile(const uint32_t& chat_id,  const String& fileName, fs::FS& filesystem);
 
