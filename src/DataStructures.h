@@ -53,14 +53,15 @@ struct TBDocument {
 };
 
 struct TBMessage {
+	bool             isMarkdownEnabled = false;
+	bool 	         disable_notification = false;
 	int32_t          messageID;
 	int64_t          chatId;
 	TBUser           sender;
 	TBGroup          group;
 	int32_t          date;
 	String      	 text;
-	int32_t          chatInstance;
-	bool             isMarkdownEnabled = false;
+	int32_t          chatInstance;	
 	const char*      callbackQueryData;
 	const char*   	 callbackQueryID;
 	TBLocation       location;
