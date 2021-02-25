@@ -3,7 +3,7 @@
 #define INLINE_KEYBOARD
 
 // for using int_64 data
-#define ARDUINOJSON_USE_LONG_LONG 	1 
+#define ARDUINOJSON_USE_LONG_LONG 	1
 
 #include <functional>
 #include <Arduino.h>
@@ -23,20 +23,21 @@ class InlineKeyboard
 
 using CallbackType = std::function<void(const TBMessage &msg)>;
 
-struct InlineButton{	
+struct InlineButton{
 	char 		*btnName;
-	CallbackType argCallback;	
+	CallbackType argCallback;
 	InlineButton *nextButton;
 } ;
 
 
 public:
 	InlineKeyboard();
-	~InlineKeyboard();	
+	~InlineKeyboard();
 
+	void enableResize();
 
 	// Get total number of keyboard buttons
-	int getButtonsNumber() ;	
+	int getButtonsNumber() ;
 
 	// add a new empty row of buttons
 	// return:
@@ -52,16 +53,16 @@ public:
 	//    true if no error occurred
 	bool addButton(const char* text, const char* command, InlineKeyboardButtonType buttonType, CallbackType onClick = nullptr);
 
-	// generate a string that contains the inline keyboard formatted in a JSON structure. 
+	// generate a string that contains the inline keyboard formatted in a JSON structure.
 	// Useful for CTBot::sendMessage()
 	// returns:
-	//   the JSON of the inline keyboard 
+	//   the JSON of the inline keyboard
 	String getJSON(void) const ;
 	String getJSONPretty(void) const;
 
 
 private:
-	friend class AsyncTelegram; 
+	friend class AsyncTelegram;
 
 	String 			m_json;
 	String 			m_name;
@@ -70,12 +71,12 @@ private:
 	uint8_t			m_buttonsCounter = 0;
 	InlineButton 	*_firstButton = nullptr;
 	InlineButton 	*_lastButton = nullptr;
-	
+
 
 	// Check if a callback function has to be called for a button query reply message
-	void checkCallback(const TBMessage &msg) ;	
-	
-	
+	void checkCallback(const TBMessage &msg) ;
+
+
 };
 
 
