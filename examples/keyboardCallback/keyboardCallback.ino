@@ -98,6 +98,9 @@ void setup() {
 
   if(myBot.updateFingerPrint())
       Serial.println("\nTelegram server fingerprint updated.");
+  
+   // To ensure certificate validation, WiFiClientSecure needs current time upadated
+  myBot.setClock("CET-1CEST,M3.5.0,M10.5.0/3");
 
   // Set the Telegram bot properies
   myBot.setUpdateTime(1000);
