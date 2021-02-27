@@ -552,7 +552,7 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Reply
 void AsyncTelegram::sendTo(const int32_t userid, String &message, String keyboard) {
     TBMessage msg;
     msg.chatId = userid;
-    return sendMessage(msg, message.c_str(), "");
+    return sendMessage(msg, message.c_str(), keyboard);
 }
 
 bool AsyncTelegram::sendPhotoByFile(const uint32_t& chat_id, const String& fileName, fs::FS& fs) {
