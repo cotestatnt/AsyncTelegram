@@ -53,7 +53,7 @@ struct TBDocument {
 };
 
 struct TBMessage {
-	bool             isMarkdownEnabled = false;
+	bool             isMarkdownEnabled = true;
 	bool 	         disable_notification = false;
 	int32_t          messageID;
 	int64_t          chatId;
