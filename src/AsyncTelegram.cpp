@@ -32,7 +32,6 @@ AsyncTelegram::AsyncTelegram() {
     telegramClient.setFingerprint(m_fingerprint);
     telegramClient.setInsecure();
     telegramClient.setBufferSizes(1024,1024);
-    telegramClient.setNoDelay(true);
 #endif
 }
 
@@ -149,6 +148,7 @@ String AsyncTelegram::postCommand(const char* const& command, const char* const&
         if (blocking) {
             String response((char *)0);
             while (telegramClient.connected()) {
+				yield();
                 String line = telegramClient.readStringUntil('\n');
                 if (line == "\r") {
                     //Serial.println("Headers received");
@@ -157,6 +157,7 @@ String AsyncTelegram::postCommand(const char* const& command, const char* const&
             }
             // If there are incoming bytes available from the server, read them and print them:
             while (telegramClient.available()) {
+				yield();
                 response += (char) telegramClient.read();
             }
             httpData.waitingReply = false;
@@ -437,8 +438,8 @@ bool AsyncTelegram::getFile(TBDocument &doc)
 }
 
 bool AsyncTelegram::begin(){
+	telegramClient.setInsecure();
 #if defined(ESP8266)
-    telegramClient.setInsecure();
     telegramClient.setBufferSizes(1024,1024);
     telegramClient.setNoDelay(true);
 #elif defined(ESP32)
@@ -461,11 +462,8 @@ bool AsyncTelegram::begin(){
 
 // Blocking getMe function (we wait for a reply from Telegram server)
 bool AsyncTelegram::getMe(TBUser &user) {
-    String response((char *)0);
-    response.reserve(100);
-
     // getMe has top be blocking (wait server reply)
-    response = postCommand("getMe", "", true);
+    String response = postCommand("getMe", "", true);
     if (response.length() == 0)
         return false;
 
@@ -507,14 +505,17 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Strin
     String param((char *)0);
     param.reserve(512);
     DynamicJsonDocument root(BUFFER_BIG);
-
-    root["chat_id"] = msg.chatId;
-    root["text"] = message;
+	
+	// Backward compatibility
+	root["chat_id"] = msg.sender.id != 0 ? msg.sender.id : msg.chatId;
+	
     if (msg.isMarkdownEnabled)
-        root["parse_mode"] = "Markdown";
+        root["parse_mode"] = "MarkdownV2";
   
     if (msg.disable_notification)
         root["disable_notification"] = true;
+	
+	root["text"] = message;
 
     if (keyboard.length() != 0) {
         DynamicJsonDocument doc(512);
@@ -552,7 +553,7 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Reply
 void AsyncTelegram::sendTo(const int32_t userid, String &message, String keyboard) {
     TBMessage msg;
     msg.chatId = userid;
-    return sendMessage(msg, message.c_str(), keyboard);
+    return sendMessage(msg, message.c_str(), "");
 }
 
 bool AsyncTelegram::sendPhotoByFile(const uint32_t& chat_id, const String& fileName, fs::FS& fs) {

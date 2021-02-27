@@ -16,13 +16,14 @@
 
 
 
-#define DEBUG_MODE          0           // enable debugmode -> print debug data on the Serial
+#define DEBUG_MODE          1           // enable debugmode -> print debug data on the Serial
 #define USE_FINGERPRINT     1           // use Telegram fingerprint server validation
 #define SERVER_TIMEOUT      5000
 
 #include "DataStructures.h"
 #include "InlineKeyboard.h"
 #include "ReplyKeyboard.h"
+#include "Utilities.h"
 
 // Here we store the stuff related to the Telegram server reply
 typedef struct {
@@ -126,7 +127,16 @@ public:
     //  - User has to start your bot in it's own client. For example send a message with @<your bot name>
     void sendTo(const int32_t userid, String &message, String keyboard = "") ;
     
-
+	// Backward compatibility.
+	inline void sendToUser(const int32_t userid, String &message, String keyboard = "")  __attribute__ ((deprecated))
+	{
+		sendTo(userid, message, keyboard);	
+	}
+	inline void sendToGroup(const int32_t userid, String &message, String keyboard = "")  __attribute__ ((deprecated))
+	{
+		sendTo(userid, message, keyboard);	
+	}
+	
     // terminate a query started by pressing an inlineKeyboard button. The steps are:
     // 1) send a message with an inline keyboard
     // 2) wait for a <message> (getNewMessage) of type MessageQuery
