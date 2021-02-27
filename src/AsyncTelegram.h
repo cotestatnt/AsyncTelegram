@@ -16,7 +16,7 @@
 
 
 
-#define DEBUG_MODE          1           // enable debugmode -> print debug data on the Serial
+#define DEBUG_MODE          0           // enable debugmode -> print debug data on the Serial
 #define USE_FINGERPRINT     1           // use Telegram fingerprint server validation
 #define SERVER_TIMEOUT      5000
 
