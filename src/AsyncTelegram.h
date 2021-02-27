@@ -34,7 +34,6 @@
 
 #if defined(ESP32)
     #include <WiFiClientSecure.h>
-    #include <HTTPClient.h>
     #define BLOCK_SIZE          4096        // More memory, increase block size to speed-up a little upload
 #elif defined(ESP8266)
     #define BLOCK_SIZE          2048
@@ -91,7 +90,7 @@ public:
 
 
     void sendPhotoByUrl(const uint32_t& chat_id,  const String& url, const String& caption);
-	
+
 	inline void sendPhotoByUrl(const TBMessage &msg,  const String& url, const String& caption){
 		sendPhotoByUrl(msg.sender.id, url, caption);
 	}
@@ -167,9 +166,9 @@ public:
     }
 
     inline void sendToUser(const int32_t userid, const char* message, String keyboard = "") {
-       TBMessage msg;
+        TBMessage msg;
         msg.sender.id = userid;
-        return sendMessage(msg, message, "");
+        return sendMessage(msg, message, keyboard);
     }
 
     // terminate a query started by pressing an inlineKeyboard button. The steps are:
@@ -198,7 +197,6 @@ public:
     bool getUpdates();
 
     inline const char* getBotName() {
-        Serial.println(m_botName);
         return m_botName;
     }
 
@@ -217,10 +215,11 @@ private:
     fs::FS*         m_filesystem ;
 
 #if defined(ESP32)
-    WiFiClientSecure telegramClient;
+    // WiFiClientSecure telegramClient;
+    WiFiClientSecure *telegramClient;
     TaskHandle_t taskHandler;
 #elif defined(ESP8266)
-    BearSSL::WiFiClientSecure telegramClient;
+    BearSSL::WiFiClientSecure *telegramClient;
     BearSSL::Session m_session;
 #endif
 

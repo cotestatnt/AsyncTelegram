@@ -64,6 +64,7 @@ struct TBFileInfo {
 
 struct TBMessage {
 	bool             isMarkdownEnabled = false;
+	bool 			 disable_notification = false;
 	int32_t          messageID;
 	int64_t          chatId;
 	int32_t          date;
