@@ -21,14 +21,14 @@ const char* channel = "@tolentino_cotesta";
  
 
 void setup() {
-    pinMode(LED_BUILTIN, OUTPUT);
+	pinMode(LED_BUILTIN, OUTPUT);
 	// initialize the Serial
-	Serial.begin(115200);
+	Serial.begin(115200); 
 	Serial.println("Starting TelegramBot...");
 
 	WiFi.setAutoConnect(true);   
 	WiFi.mode(WIFI_STA);
- 	
+
 	WiFi.begin(ssid, pass);
 	delay(500);
 	while (WiFi.status() != WL_CONNECTED) {
@@ -36,16 +36,19 @@ void setup() {
 		delay(500);
 	}
 
+	// To ensure certificate validation, WiFiClientSecure needs current time upadated
+	myBot.setClock("CET-1CEST,M3.5.0,M10.5.0/3");
+	
 	// Set the Telegram bot properies
-    myBot.setUpdateTime(2000);
-    myBot.setTelegramToken(token);
-    
-    // Check if all things are ok
-    Serial.print("\nTest Telegram connection... ");
-    myBot.begin() ? Serial.println("OK") : Serial.println("NOK");
-    
-    Serial.print("Bot name: @");	
-    Serial.println(myBot.getBotName());
+	myBot.setUpdateTime(2000);
+	myBot.setTelegramToken(token);
+
+	// Check if all things are ok
+	Serial.print("\nTest Telegram connection... ");
+	myBot.begin() ? Serial.println("OK") : Serial.println("NOK");
+
+	Serial.print("Bot name: @");	
+	Serial.println(myBot.getBotName());
 }
 
 void loop() {
@@ -79,5 +82,5 @@ void loop() {
 
 		// echo the received message
 		myBot.sendMessage(msg, msg.text);				
-    }
+	}
 }
