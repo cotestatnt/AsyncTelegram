@@ -140,6 +140,9 @@ void setup() {
   Serial.printf("Total space: %10u\n", FFat.totalBytes());
   Serial.printf("Free space: %10u\n", FFat.freeBytes());
   listDir(FFat, "/", 0);
+  
+  // To ensure certificate validation, WiFiClientSecure needs current time upadated
+  myBot.setClock("CET-1CEST,M3.5.0,M10.5.0/3");
 
   // Set the Telegram bot properies
   myBot.setUpdateTime(1000);
