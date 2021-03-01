@@ -53,6 +53,7 @@ struct TBDocument {
 };
 
 struct TBMessage {
+	bool	         isHTMLenabled = false;
 	bool             isMarkdownEnabled = false;
 	bool 	         disable_notification = false;
 	int32_t          messageID;
