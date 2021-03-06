@@ -1,5 +1,5 @@
 /*
- Name:          echoBot.ino
+ Name:        ESP32-CAM.ino
  Created:     20/06/2020
  Author:      Tolentino Cotesta <cotestatnt@yahoo.com>
  Description: an example that show how is possible send an image captured from a ESP32-CAM board
@@ -7,6 +7,7 @@
 
 //                                             WARNING!!! 
 // Make sure that you have selected ESP32 Wrover Module, or another board which has PSRAM enabled
+// and Partition Schema: "Default 4MB with ffat..."
 
 #include "esp_camera.h"
 
@@ -22,7 +23,7 @@
 #include "soc/rtc_cntl_reg.h"  // Brownout error fix
 
 // Define where store images (on board SD card reader or internal flash memory)
-#define USE_MMC true
+// #define USE_MMC true
 #ifdef USE_MMC
     #include <SD_MMC.h>           // Use onboard SD Card reader
     fs::FS &filesystem = SD_MMC; 
@@ -71,7 +72,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
                 listDir(fs, file.name(), levels -1);      
         } 
         else 
-            Serial.printf("  FILE: %s\tSIZE: %d", file.name(), file.size());
+            Serial.printf("  FILE: %s\tSIZE: %d\n", file.name(), file.size());
        
         file = root.openNextFile();
     }
@@ -108,10 +109,10 @@ String takePicture(fs::FS &fs){
 #ifdef USE_MMC
     uint64_t freeBytes =  SD_MMC.totalBytes() - SD_MMC.usedBytes();
 #else
-    uint64_t freeBytes =  filesystem.freeBytes();
+    uint64_t freeBytes =  FFat.freeBytes();
 #endif
 
-    if(freeBytes> file.size() ){ 
+    if(freeBytes > fb->len ){ 
         file.write(fb->buf, fb->len); // payload (image), payload length
         Serial.printf("Saved file to path: %s\n", path.c_str());
         file.close();
@@ -130,7 +131,7 @@ void setup() {
     Serial.println();
 
     // Init the camera 
-    cameraSetup(FRAMESIZE_UXGA);
+    cameraSetup(FRAMESIZE_UXGA);  //QVGA|CIF|VGA|SVGA|XGA|SXGA
 
     // Init WiFi connections
     WiFi.begin(ssid, pass);
@@ -151,10 +152,10 @@ void setup() {
     Serial.printf("Free space: %10llu\n", SD_MMC.totalBytes() - SD_MMC.usedBytes());
 #else
     // Init filesystem (format if necessary)
-    if(!filesystem.begin(FORMAT_FS_IF_FAILED))
+    if(!FFat.begin(FORMAT_FS_IF_FAILED))
         Serial.println("\nFS Mount Failed.\nFilesystem will be formatted, please wait.");       
-    Serial.printf("\nTotal space: %10lu\n", filesystem.totalBytes());
-    Serial.printf("Free space: %10lu\n", filesystem.freeBytes());
+    Serial.printf("\nTotal space: %10lu\n", FFat.totalBytes());
+    Serial.printf("Free space: %10lu\n", FFat.freeBytes());
 #endif
 
     listDir(filesystem, "/", 0);
@@ -193,8 +194,8 @@ void loop() {
                 // Take picture and save to file
                 String myFile = takePicture(filesystem);
                 if(myFile != "") {
-                    myBot.sendPhotoByFile(msg.sender.id, myFile, filesystem);  
-                           
+                    if (!myBot.sendPhotoByFile(msg.sender.id, myFile, filesystem))
+                      Serial.println("Photo send failed");       
                     //If you don't need to keep image in memory, delete it 
                     if(KEEP_IMAGE == false){
                         filesystem.remove("/" + myFile);
@@ -209,7 +210,6 @@ void loop() {
                 replyStr +=  "\nTry with /takePhoto";
                 myBot.sendMessage(msg, replyStr);
             }
-            
         }
     }
 }
