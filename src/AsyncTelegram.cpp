@@ -291,6 +291,12 @@ bool AsyncTelegram::getUpdates(){
         return true;
     }
     #else
+        // No response from server for a long time, reset connection ESP32
+        if(millis() - httpData.timestamp > 10*m_minUpdateTime){ 
+          Serial.println("Reset connection ESP32");
+          httpData.timestamp = millis(); 
+          if (!reset()) checkConnection();
+        }
         return ! httpData.waitingReply;
     #endif
     return false;
@@ -438,8 +444,8 @@ bool AsyncTelegram::getFile(TBDocument &doc)
 }
 
 bool AsyncTelegram::begin(){
-	telegramClient.setInsecure();
 #if defined(ESP8266)
+	telegramClient.setInsecure();
     telegramClient.setBufferSizes(1024,1024);
     telegramClient.setNoDelay(true);
 #elif defined(ESP32)
