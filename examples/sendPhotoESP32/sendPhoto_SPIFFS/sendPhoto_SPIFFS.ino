@@ -142,6 +142,10 @@ void setup() {
   Serial.printf("Total space: %10u\n", SPIFFS.totalBytes());
   Serial.printf("Free space: %10u\n", SPIFFS.totalBytes() - SPIFFS.usedBytes());
   listDir(SPIFFS, "/", 0);
+  
+  // To ensure certificate validation, WiFiClientSecure needs time updated
+  // myBot.setInsecure(false);
+  myBot.setClock("CET-1CEST,M3.5.0,M10.5.0/3");
 
   // Set the Telegram bot properies
   myBot.setUpdateTime(1000);
