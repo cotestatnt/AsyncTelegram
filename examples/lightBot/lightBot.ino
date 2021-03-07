@@ -27,7 +27,7 @@ void setup() {
 
 	WiFi.setAutoConnect(true);   
 	WiFi.mode(WIFI_STA);
- 	
+
 	WiFi.begin(ssid, pass);
 	delay(500);
 	while (WiFi.status() != WL_CONNECTED) {
@@ -35,12 +35,14 @@ void setup() {
 		delay(500);
 	}
 
+	// To ensure certificate validation, WiFiClientSecure needs time updated
+  // myBot.setInsecure(false);
+  myBot.setClock("CET-1CEST,M3.5.0,M10.5.0/3");
+	
 	// Set the Telegram bot properies
-	//if( myBot.updateFingerPrint())
-    //    Serial.println("Telegram fingerprint updated");
 	myBot.setUpdateTime(1000);
 	myBot.setTelegramToken(token);
-	
+
 	// Check if all things are ok
 	Serial.print("\nTest Telegram connection... ");
 	myBot.begin() ? Serial.println("OK") : Serial.println("NOK");
