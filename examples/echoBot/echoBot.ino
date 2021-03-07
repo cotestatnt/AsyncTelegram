@@ -33,10 +33,11 @@ void setup() {
 		Serial.print('.');
 		delay(500);
 	}
-
-	// Set the Telegram bot properies
-    //if( myBot.updateFingerPrint())
-    //    Serial.println("Telegram fingerprint updated");
+	
+    // To ensure certificate validation, WiFiClientSecure needs time upadated
+    // myBot.setInsecure(false);
+    myBot.setClock("CET-1CEST,M3.5.0,M10.5.0/3");
+	
     myBot.setUpdateTime(2000);
     myBot.setTelegramToken(token);
     
