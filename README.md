@@ -41,6 +41,8 @@ Take a look at the examples provided in the [examples folder](https://github.com
 ### Reference
 [Here how to use the library](https://github.com/cotestatnt/AsyncTelegram/blob/master/REFERENCE.md). 
 
++ 1.1.2   Lot of bug fixes, better memory management and more stability (especcially on ESP32)
++ 1.1.1   Backward compatibility
 + 1.1.0   Silent message (no notification) supported
 + 1.0.9   Added support for force_reply option (act as if the user has selected the bot's message and tapped 'Reply')
 + 1.0.8   Now you can update ESP firmware with a Telegram message (thanks to Vladimir!). Added example and instructions
