@@ -401,7 +401,7 @@ bool AsyncTelegram::getMe(TBUser &user)
 bool AsyncTelegram::getFile(TBDocument &doc)
 {
     // getFile has to be blocking (wait server reply)
-    char cmd[64];
+    char cmd[128];
     strcpy(cmd,  "getFile?file_id=");
     strcat(cmd, doc.file_id);
 
