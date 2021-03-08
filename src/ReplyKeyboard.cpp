@@ -12,14 +12,15 @@ ReplyKeyboard::~ReplyKeyboard() {}
 
 bool ReplyKeyboard::addRow()
 {
-	if(m_jsonSize < BUFFER_SMALL) m_jsonSize = BUFFER_SMALL;	
-	DynamicJsonDocument doc(m_jsonSize + 64);	 // Current size + space for new row (empty)
+	if(m_jsonSize < BUFFER_MEDIUM) m_jsonSize = BUFFER_MEDIUM;	
+	DynamicJsonDocument doc(m_jsonSize + 128);	 // Current size + space for new row (empty)
 
 	deserializeJson(doc, m_json);
 	JsonArray rows = doc["keyboard"];	
 	rows.createNestedArray();
 	m_json.clear();
 	serializeJson(doc, m_json);
+	doc.shrinkToFit();
 	m_jsonSize = doc.memoryUsage();
 	return true;
 }
@@ -33,8 +34,8 @@ bool ReplyKeyboard::addButton(const char* text, ReplyKeyboardButtonType buttonTy
 		return false;
 	// As reccomended use local JsonDocument instead global
 	// inline keyboard json structure will be stored in a String var	
-	if(m_jsonSize < BUFFER_SMALL) m_jsonSize = BUFFER_SMALL;	
-	DynamicJsonDocument doc(m_jsonSize + 128);	 // Current size + space for new object (button)
+	if(m_jsonSize < BUFFER_MEDIUM) m_jsonSize = BUFFER_MEDIUM;	
+	DynamicJsonDocument doc(m_jsonSize + 256);	 // Current size + space for new object (button)
 	deserializeJson(doc, m_json);
 
 	JsonArray  rows = doc["keyboard"];	
@@ -55,6 +56,7 @@ bool ReplyKeyboard::addButton(const char* text, ReplyKeyboardButtonType buttonTy
 	// Store inline keyboard json structure
 	m_json.clear();
 	serializeJson(doc, m_json);
+	doc.shrinkToFit();
 	m_jsonSize = doc.memoryUsage();
 	return true;
 
@@ -63,8 +65,8 @@ bool ReplyKeyboard::addButton(const char* text, ReplyKeyboardButtonType buttonTy
 
 void ReplyKeyboard::enableResize() 
 {
-	if(m_jsonSize < BUFFER_SMALL) m_jsonSize = BUFFER_SMALL;	
-	DynamicJsonDocument doc(m_jsonSize + 64);   // Current size + space for new field
+	if(m_jsonSize < BUFFER_MEDIUM) m_jsonSize = BUFFER_MEDIUM;	
+	DynamicJsonDocument doc(m_jsonSize + 128);   // Current size + space for new field
 	deserializeJson(doc, m_json);
 	doc["resize_keyboard"] = true;
 	m_json.clear();
@@ -73,8 +75,8 @@ void ReplyKeyboard::enableResize()
 
 void ReplyKeyboard::enableOneTime() 
 {
-	if(m_jsonSize < BUFFER_SMALL) m_jsonSize = BUFFER_SMALL;	
-	DynamicJsonDocument doc(m_jsonSize + 64);	// Current size + space for new field
+	if(m_jsonSize < BUFFER_MEDIUM) m_jsonSize = BUFFER_MEDIUM;	
+	DynamicJsonDocument doc(m_jsonSize + 128);	// Current size + space for new field
 	deserializeJson(doc, m_json);
 	doc["one_time_keyboard"] = true;
 	m_json.clear();
@@ -83,8 +85,8 @@ void ReplyKeyboard::enableOneTime()
 
 void ReplyKeyboard::enableSelective() 
 {	
-	if(m_jsonSize < BUFFER_SMALL) m_jsonSize = BUFFER_SMALL;	
-	DynamicJsonDocument doc(m_jsonSize + 64);  // Current size + space for new field
+	if(m_jsonSize < BUFFER_MEDIUM) m_jsonSize = BUFFER_MEDIUM;	
+	DynamicJsonDocument doc(m_jsonSize + 128);  // Current size + space for new field
 	deserializeJson(doc, m_json);
 	doc["selective"] = true;
 	m_json.clear();
@@ -99,8 +101,8 @@ String ReplyKeyboard::getJSON() const
 String ReplyKeyboard::getJSONPretty() const
 {
 	uint16_t jsonSize;
-	if(m_jsonSize < BUFFER_SMALL) jsonSize = BUFFER_SMALL;	
-	DynamicJsonDocument doc(jsonSize + 64);	// Current size + space for new lines
+	if(m_jsonSize < BUFFER_MEDIUM) jsonSize = BUFFER_MEDIUM;	
+	DynamicJsonDocument doc(jsonSize + 128);	// Current size + space for new lines
 	deserializeJson(doc, m_json);
 
 	String serialized;		

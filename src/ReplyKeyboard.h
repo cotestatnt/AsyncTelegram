@@ -20,7 +20,7 @@ class ReplyKeyboard
 {
 private:
 	String m_json;
-	size_t m_jsonSize = BUFFER_SMALL;
+	size_t m_jsonSize = BUFFER_MEDIUM;
 
 public:
 	ReplyKeyboard();

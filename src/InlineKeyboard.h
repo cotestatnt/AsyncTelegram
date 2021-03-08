@@ -62,7 +62,7 @@ private:
 
 	String 			m_json;
 	String 			m_name;
-	size_t 			m_jsonSize = BUFFER_SMALL;
+	size_t 			m_jsonSize = BUFFER_MEDIUM;
 
 	uint8_t			m_buttonsCounter = 0;
 	InlineButton 	*_firstButton = nullptr;

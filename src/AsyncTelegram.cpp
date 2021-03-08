@@ -96,7 +96,8 @@ bool AsyncTelegram::begin(){
 bool AsyncTelegram::reset(void){
     if(WiFi.status() != WL_CONNECTED ){
         Serial.println("No connection available.");
-        return false;
+		httpData.timestamp = millis();
+        WiFi.reconnect();
     }
     log_debug("Reset connection\n");
     telegramClient->stop();
@@ -446,7 +447,7 @@ void AsyncTelegram::sendMessage(const TBMessage &msg, const char* message, Strin
         root["disable_notification"] = true;
 
     if (keyboard.length() != 0) {
-        DynamicJsonDocument doc(512);
+        DynamicJsonDocument doc(BUFFER_MEDIUM);
         deserializeJson(doc, keyboard);
         JsonObject myKeyb = doc.as<JsonObject>();
         root["reply_markup"] = myKeyb;

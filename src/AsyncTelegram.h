@@ -21,7 +21,7 @@
     #error "This library work only with ESP8266 or ESP32"
 #endif
 
-#define DEBUG_ENABLE        0
+#define DEBUG_ENABLE        1
 #ifndef DEBUG_ENABLE
     #define DEBUG_ENABLE    0
 #endif
