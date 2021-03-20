@@ -35,6 +35,14 @@ Don't you know Telegram bots and how to setup one? Check [this](https://core.tel
 ### Supported boards
 The library works with the ESP8266 and ESP32 chipset.
 
+### Setting Clock time.
+To ensure certificate validation, WiFiClientSecure needs time updated. To choose correct time zone, Follow this link https://sites.google.com/a/usapiens.com/opnode/time-zones
+and replace String value inside 
+```
+ myBot.setClock("CET-1CEST,M3.5.0,M10.5.0/3");
+```
+with corresponding city time zone string.
+
 ### Simple and responsive usage
 Take a look at the examples provided in the [examples folder](https://github.com/cotestatnt/AsyncTelegram/tree/master/examples).
 
