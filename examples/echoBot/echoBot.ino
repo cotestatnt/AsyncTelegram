@@ -77,17 +77,19 @@ void loop() {
 		// https://t.me/JsonDumpBot 				
 		int32_t userid = 1234567890;	
 		myBot.sendToUser(userid, msg.text);	
-
-        // check if the message comes from a chat group (the group.id is negative)
-        if (msg.group.id < 0) {
-          // echo the message to the chat group
-          message += "\nGroup ID: "; 
-          message += int64ToAscii(msg.group.id);
-          myBot.sendToGroup(msg.group.id, message);
-        }
-
+		
 		// echo the received message
-		myBot.sendMessage(msg, msg.text);				
-    }
+		myBot.sendMessage(msg, msg.text);
+
+		// check if the message comes from a chat group (the group.id is negative)
+		if (msg.group.id < 0) {
+			// echo the message to the chat group
+			message += "\nGroup ID: "; 
+			message += int64ToAscii(msg.group.id);	
+			//myBot.sendToGroup(msg.group.id, message);   //DEPRECATED
+			msg.chatId = msg.group.id;
+			myBot.sendMessage(msg, message);	
+		}				
+    	}
 }
 
