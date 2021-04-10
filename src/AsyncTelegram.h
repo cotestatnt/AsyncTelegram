@@ -211,7 +211,7 @@ public:
     void editMessageReplyMarkup(TBMessage &msg, InlineKeyboard &keyboard);
 
 
-    void setClock(const char* TZ);
+    void setClock(const char* TZ, uint32_t maxTime = 5000);
     bool getUpdates();
     String userName ;
 
