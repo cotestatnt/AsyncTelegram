@@ -30,18 +30,18 @@ AsyncTelegram::AsyncTelegram() {
 AsyncTelegram::~AsyncTelegram() {};
 
 // Set time via NTP, as required for x.509 validation
-void AsyncTelegram::setClock(const char* TZ)
+void AsyncTelegram::setClock(const char* TZ,  uint32_t maxTime)
 {
     // Set timezone and NTP servers
 #ifdef ESP8266
     configTime(TZ, "time.google.com", "time.windows.com", "pool.ntp.org");
 #elif defined(ESP32)
     configTzTime(TZ, "time.google.com", "time.windows.com", "pool.ntp.org");
-#endif
-
+#endif 
+  uint32_t start = millis();
   Serial.print("Waiting for NTP time sync: ");
   time_t now = time(nullptr);
-  while (now < 8 * 3600 * 2) {
+  while ((now < 8 * 3600 * 2) && (millis() -start < maxTime)) {
     delay(200);
     Serial.print(".");
     now = time(nullptr);
