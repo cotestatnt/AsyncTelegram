@@ -70,10 +70,10 @@ struct TBDocument {
 
 struct TBMessage {
 	MessageType 	 messageType;
-	bool			 isHTMLenabled = false;
+	bool		 isHTMLenabled = false;
 	bool             isMarkdownEnabled = false;
 	bool 	         disable_notification = false;
-	bool			 force_reply = false;
+	bool		 force_reply = false;
 	int64_t          chatId;
 	int32_t          messageID;
 	int32_t          date;
