@@ -141,6 +141,7 @@ public:
 
     inline void sendMessage(const TBMessage &msg, const char* message, InlineKeyboard &keyboard)
     {
+	m_inlineKeyboard = keyboard;
         return sendMessage(msg, message, keyboard.getJSON());
     }
 
